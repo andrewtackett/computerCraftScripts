@@ -1,40 +1,3 @@
----@diagnostic disable: lowercase-global, undefined-global
---- ComputerCraft Turtle script to farm trees.
-
-local min_fuel_level = 250
-local wait_time_between_checks = 180 -- seconds
-local sapling_slot = 1
-local fuel_slot = 16
-
-local chest_distance_down_from_start = 4
-local chest_distance_backward_from_start = 3
-local chest_distance_right_from_start = 1
-
-local row_length = 5
-
--- Ensure global APIs are recognized by linters
-local turtle = turtle
-local sleep = sleep
----@diagnostic disable-next-line: undefined-global
-local textutils = textutils
-local peripheral = peripheral
-
-local fuel_item_name = "minecraft:spruce_log"
-local sapling_item_name = "minecraft:spruce_sapling"
-
-local function throwError(msg)
-    term.setTextColor(colors.red)
-    print(msg)
-    term.setTextColor(colors.white)
-    error()
-end
-
-local function printWithColor(msg, color)
-    term.setTextColor(color)
-    print(msg)
-    term.setTextColor(colors.white)
-end
-
 local function goLeft(distance)
     distance = distance or 1
     turtle.turnLeft()
@@ -117,25 +80,6 @@ local function detectSapling()
     return isSapling
 end
 
-local function harvestTree()
-    printWithColor("Harvesting tree", colors.green)
-    safeDig()
-    goForward()
-    local steps_up = 0
-    while turtle.detectUp() do
-        print("Digging tree: " .. steps_up)
-        safeDigUp()
-        goUp()
-        steps_up = steps_up + 1
-    end
-    for i = 1, steps_up do
-        goDown()
-    end
-    goBack()
-    turtle.select(sapling_slot)
-    turtle.place()
-end
-
 local function storeGoods()
     print("Storing goods")
     for i = 1, 16 do
@@ -149,15 +93,6 @@ local function storeGoods()
         end
     end
     turtle.select(sapling_slot)
-end
-
-local function findLastOpenInventorySlot(inventory_size, items)
-    for i = inventory_size, 2, -1 do
-        if items[i] == nil then
-            return i
-        end
-    end
-    throwError("No space to rearrange fuel/items in chest!")
 end
 
 local function restockItem(desired_item_name, needed_items)
@@ -226,87 +161,4 @@ local function ensureFuel()
             throwError("Refuel failed!")
         end
     end
-end
-
-local function ensureSaplings()
-    if turtle.getItemCount(sapling_slot) <= row_length then
-        print("Restocking Saplings")
-        restockItem(sapling_item_name, row_length)
-        if turtle.getItemCount(sapling_slot) <= row_length then
-            throwError("Not enough saplings in storage! Need at least " .. (row_length + 1) .. " saplings.")
-        end
-    end
-end
-
-local function navigateToRowStartFromChest()
-    print("Navigating to row start from chest")
-    goUp(chest_distance_down_from_start)
-    goForward(chest_distance_backward_from_start)
-    goLeft(chest_distance_right_from_start)
-end
-
-local function navigateToChestFromRowStart()
-    print("Navigating to chest from row start")
-    goRight(chest_distance_right_from_start)
-    goBack(chest_distance_backward_from_start)
-    goDown(chest_distance_down_from_start)
-end
-
-local function navigateToRowStartFromEnd()
-    print("Navigating to row start from end of row, distance " .. row_length)
-    for i = 1, row_length do
-        goRight(1)
-        turtle.suck() -- Grab any saplings on the way back
-    end
-end
-
-local function patrolRow()
-    print("Patrolling row of length " .. row_length)
-    for i = 1, row_length do
-        if not detectSapling() and not detectLog() then
-            print("No sapling at " .. i .. ", planting new tree")
-            turtle.select(sapling_slot)
-            turtle.place()
-        elseif detectLog() then
-            print("Tree detected at " .. i .. ", harvesting")
-            harvestTree()
-        end
-        goLeft(1)
-    end
-
-    navigateToRowStartFromEnd()
-end
-
-local function printLoopStatus()
-    local time = os.time()
-    local formattedTime = textutils.formatTime(time, false)
-    print("Loop " .. formattedTime .. ", Fuel: " .. turtle.getFuelLevel() .. ", Saplings: " .. turtle.getItemCount(sapling_slot))
-end
-
-print("Starting tree farm")
-navigateToChestFromRowStart()
-turtle.select(sapling_slot)
-ensureSaplings()
-ensureFuel()
-navigateToRowStartFromChest()
-
-while true do
-    printLoopStatus()
-    if not detectLog() then
-        if not detectSapling() then
-            print("No sapling at start, planting new tree")
-            turtle.select(sapling_slot)
-            turtle.place()
-        end
-        print("Tree not detected at start, waiting for it to grow for efficiency")
-    else
-        patrolRow()
-        navigateToChestFromRowStart()
-        storeGoods()
-        ensureSaplings()
-        ensureFuel()
-        navigateToRowStartFromChest()
-    end
-
-    sleep(wait_time_between_checks)
 end
