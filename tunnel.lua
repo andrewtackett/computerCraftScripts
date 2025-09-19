@@ -1,4 +1,12 @@
 -- ComputerCraft Turtle Script to dig a tunnel with optional torch placement
+-- and inventory management
+
+-- Expected start with Turtle facing forward along the tunnel path
+-- with a chest/inventory to the right of it for unloading items
+
+-- TODO: add restocking fuel and torches
+-- TODO: add compressing deepslate and other common blocks into their x1/x2/x9 forms
+-- TODO: see if we can collect xp
 
 local args = {...}
 if #args < 1 then
@@ -18,6 +26,8 @@ local loggingMode = args[5] or "normal" -- "normal", "verbose", "debug"
 local torch_slot = 16
 local distance_between_torches = 6
 local tunnel_height = 8
+local items_to_compact_tags = "allthecompressed:1x"
+-- t = {[1]=true, [2]=true}
 
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
@@ -167,6 +177,12 @@ local function navigateFromTunnelStartToTunnelStoppingPoint(steps_taken_forward,
     goUp(steps_taken_up)
 end
 
+-- local function compactItems()
+--     log("Compacting items", "info")
+-- end
+
+-- t = { name = "minecraft:oak_log", state = { axis = "x" }, tags = { ["minecraft:logs"] = true }}
+
 local function storeGoods()
     log("Storing goods", "info")
     local function canDropItems()
@@ -289,7 +305,8 @@ local function digStep(step_number)
 end
 
 -- Main
-log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches))
+log("Tunnel v2.0 starting...", "info")
+log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches) .. ", Torch Offset: " .. torchOffset .. ", Tunnel Start Offset: " .. tunnelStartOffset .. ", Logging Mode: " .. loggingMode, "info")
 log("--------------------------------------------------")
 ensureTorches()
 for i=1,lengthOfTunnel do
