@@ -1,3 +1,8 @@
+
+---@diagnostic disable-next-line: undefined-global
+local turtle = turtle
+local version = { major=1, minor=0, patch=0 }
+
 local function goLeft(distance)
     distance = distance or 1
     turtle.turnLeft()
@@ -80,11 +85,11 @@ local function detectSapling()
     return isSapling
 end
 
-local function storeGoods()
+local function storeGoods(off_limits_slots)
     print("Storing goods")
     for i = 1, 16 do
         turtle.select(i)
-        if i ~= sapling_slot and i ~= fuel_slot then
+        if not off_limits_slots[i] then
             if(turtle.getItemCount() > 0) then
                 if not turtle.drop() then
                     throwError("The storage is full. Stopping...")
@@ -162,3 +167,7 @@ local function ensureFuel()
         end
     end
 end
+
+return {
+    version = version,
+}

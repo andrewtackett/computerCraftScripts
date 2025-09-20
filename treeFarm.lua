@@ -1,6 +1,8 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 --- ComputerCraft Turtle script to farm trees.
 
+local version = { major=1, minor=0, patch=0 }
+
 local min_fuel_level = 250
 local wait_time_between_checks = 180 -- seconds
 local sapling_slot = 1
@@ -310,3 +312,7 @@ while true do
 
     sleep(wait_time_between_checks)
 end
+
+return {
+    version = version,
+}

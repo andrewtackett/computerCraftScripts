@@ -3,31 +3,29 @@
 
 -- Expected start with Turtle facing forward along the tunnel path
 -- with a chest/inventory to the right of it for unloading items
-
--- TODO: add restocking fuel and torches
--- TODO: add compressing deepslate and other common blocks into their x1/x2/x9 forms
--- TODO: see if we can collect xp
+local version = { major=1, minor=0, patch=0 }
+local common = require("common")
 
 local args = {...}
 if #args < 1 then
     print("Usage: tunnel <lengthOfTunnel> [placeTorches] [torchOffset] [tunnelStartOffset] [loggingMode]")
-    -- print("  lengthOfTunnel: Length of the tunnel to dig (required)")
-    -- print("  placeTorches: true/false whether to place torches (default: false)")
-    -- print("  torchOffset: Offset for torch placement (default: 0)")
-    -- print("  loggingMode: 'normal', 'verbose', or 'debug' (default: 'normal')")
     return
 end
 local lengthOfTunnel = args[1]
 local placeTorches = args[2] == "true" or false
 local torchOffset = args[3] or 0
 local tunnelStartOffset = args[4] or 0
-local loggingMode = args[5] or "normal" -- "normal", "verbose", "debug"
+
+local config = common.readConfigFile("config.cfg")
+local storageX = config["storageX"]
+local storageY = config["storageY"]
+local storageZ = config["storageZ"]
+local loggingMode = config["loggingMode"] or args[5] or "normal" -- "normal", "verbose", "debug"
 
 local torch_slot = 16
 local distance_between_torches = 6
 local tunnel_height = 8
 local items_to_compact_tags = "allthecompressed:1x"
--- t = {[1]=true, [2]=true}
 
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
@@ -46,24 +44,7 @@ local success_color = colors.green
 local verbose_color = colors.purple
 local debug_color   = colors.gray
 local default_color = colors.green
--- Color codes reference:
 
--- colors.white	    1	    0x1	    0		#F0F0F0	240, 240, 240	
--- colors.orange	2	    0x2	    1		#F2B233	242, 178, 51	
--- colors.magenta	4	    0x4	    2		#E57FD8	229, 127, 216	
--- colors.lightBlue	8	    0x8	    3		#99B2F2	153, 178, 242	
--- colors.yellow	16	    0x10	4		#DEDE6C	222, 222, 108	
--- colors.lime	    32	    0x20	5		#7FCC19	127, 204, 25	
--- colors.pink	    64	    0x40	6		#F2B2CC	242, 178, 204	
--- colors.gray	    128	    0x80	7		#4C4C4C	76, 76, 76	
--- colors.lightGray	256	    0x100	8		#999999	153, 153, 153	
--- colors.cyan	    512	    0x200	9		#4C99B2	76, 153, 178	
--- colors.purple	1024	0x400	a		#B266E5	178, 102, 229	
--- colors.blue	    2048	0x800	b		#3366CC	51, 102, 204	
--- colors.brown	    4096	0x1000	c		#7F664C	127, 102, 76	
--- colors.green	    8192	0x2000	d		#57A64E	87, 166, 78	
--- colors.red	    16384	0x4000	e		#CC4C4C	204, 76, 76	
--- colors.black     32768	0x8000	f		#191919	25, 25, 25
 
 local function throwError(msg)
     term.setTextColor(error_color)
@@ -181,8 +162,6 @@ end
 --     log("Compacting items", "info")
 -- end
 
--- t = { name = "minecraft:oak_log", state = { axis = "x" }, tags = { ["minecraft:logs"] = true }}
-
 local function storeGoods()
     log("Storing goods", "info")
     local function canDropItems()
@@ -280,35 +259,56 @@ local function digLeftAndRight()
     turtle.turnLeft()
 end
 
+local function clearAboveFallingItemsFromLastStep()
+    -- When falling blocks fall on the turtle they'll drop and then fall when it
+    -- goes forward, so we'll turn back on each step and try to pick up any
+    -- that fell off its back
+    turtle.turnRight()
+    turtle.turnRight()
+    turtle.suck()
+    turtle.turnLeft()
+    turtle.turnLeft()
+end
+
+local function clearLeftAndRightFallingItems()
+    digLeftAndRight()
+end
+
 local function digStep(step_number)
     log("Digging: " .. step_number .. " fuel left: " .. turtle.getFuelLevel(), "info")
     ensureInventorySpace(step_number)
     -- ensureTorch()?
-    placeTorch(step_number)
 
     digWithFallGuard()
     goForward()
+    clearAboveFallingItemsFromLastStep()
+    placeTorch(step_number)
     digLeftAndRight()
 
-    for _=1, tunnel_height - 1 do
+    for _=0, tunnel_height do
         digWithFallGuard("up")
         goUp()
         digLeftAndRight()
     end
 
-    for _=1, tunnel_height - 1 do
+    for _=0, tunnel_height do
         goDown()
     end
 
     -- Make sure to clear out any blocks that fell while digging higher up
-    digLeftAndRight()
+    clearLeftAndRightFallingItems()
 end
 
 -- Main
-log("Tunnel v2.0 starting...", "info")
+log("Tunnel v" .. version["major"] .. "." .. version["minor"] .. "." .. version["patch"] .. " starting...", "info")
 log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches) .. ", Torch Offset: " .. torchOffset .. ", Tunnel Start Offset: " .. tunnelStartOffset .. ", Logging Mode: " .. loggingMode, "info")
 log("--------------------------------------------------")
 ensureTorches()
-for i=1,lengthOfTunnel do
+for i=0,(lengthOfTunnel - 1) do
     digStep(i)
+    dumpInventory(i)
 end
+
+return {
+    version = version,
+}
