@@ -17,52 +17,67 @@ local gps = gps
 
 local args = {...}
 if #args < 1 then
-    print("Usage: tunnel <lengthOfTunnel> [placeTorches] [tunnelHeight]")
+    print("Usage: tunnel <tunnelLength> [placeTorches] [tunnelHeight]")
     return
 end
 local config = common.readConfigFile()
-local lengthOfTunnel = args[1]
+local tunnelLength = args[1]
 local placeTorches = args[2] == "true" or false
 
 local storageX = tonumber(config["storageX"])
 local storageY = tonumber(config["storageY"])
 local storageZ = tonumber(config["storageZ"])
 
-local startX, startY, startZ = gps.locate()
-print("Debugging, start coords: ", startX, startY, startZ)
-print("Debug, loggingMode: " .. config["loggingMode"])
-common.log("test debug message","debug")
-
 local torch_slot = 16
 local off_limits_slots = { [16] = true }
 local distance_between_torches = 6
-local tunnel_height = args[3] or tonumber(config["tunnelHeight"])
+local tunnelHeight = args[3] or tonumber(config["tunnelHeight"])
 
 local function navigateToStorage()
     common.log("Navigating to storage")
     local storageX = tonumber(config["storageX"])
     local storageY = tonumber(config["storageY"])
     local storageZ = tonumber(config["storageZ"])
-    print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
+    common.log("Storage coordinates: " .. storageX .. "|" .. storageY .. "|" .. storageZ, "debug")
     turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
-    print("Arrived at storage")
+    common.log("Arrived at storage")
 end
 
 local function dumpInventory(default_slot, off_limits_slots)
+    common.log("Dumping Inventory")
     default_slot = default_slot or 1
     local currentX, currentY, currentZ = gps.locate()
     turtleCommon.goLeft()
     navigateToStorage()
-    print("pre turn right")
     turtle.turnRight()
-    print("post turn right")
     turtleCommon.storeGoods(default_slot, off_limits_slots)
-    print("pre turn left")
     turtle.turnLeft()
-    print("post turn left")
     common.log("Returning to start")
     turtleCommon.goLeft()
     turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
+end
+
+-- TODO: make this fetch from chest/dump inventory
+local function ensureFuel()
+    local curFuel = turtle.getFuelLevel()
+     -- 2.6 = 2 for both sides, 0.6 guess for trips to storage
+    local neededFuel = math.ceil(tunnelLength * tunnelHeight * 2.6)
+    local hasEnoughFuel = curFuel > neededFuel
+    if not hasEnoughFuel then
+        common.throwError("Not enough fuel")
+    end
+end
+
+-- TODO: make this fetch from chest/dump inventory
+local function ensureTorches()
+    local function checkTorches()
+        turtle.select(torch_slot)
+        return turtle.getItemCount(torch_slot) > 0
+    end
+    if not checkTorches() then
+        common.log("Out of torches!", "error")
+        common.waitForFix(checkTorches, 30)
+    end
 end
 
 local function ensureInventorySpace()
@@ -81,27 +96,15 @@ local function ensureInventorySpace()
     end
 end
 
--- TODO: make this fetch from chest/dump inventory
-local function ensureTorches()
-    local function checkTorches()
-        turtle.select(torch_slot)
-        return turtle.getItemCount(torch_slot) > 0
-    end
-    if not checkTorches() then
-        common.log("Out of torches!", "error")
-        common.waitForFix(checkTorches, 30)
-    end
-end
-
 local function getMaxOffset()
     local currentX, currentY, currentZ = gps.locate()
     local xOffset = math.abs(storageX - currentX)
     local yOffset = math.abs(storageY - currentY)
     local zOffset = math.abs(storageZ - currentZ)
-    common.log("getMaxOffset: " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
+    common.log("getMaxOffset: " .. xOffset .. "|" .. yOffset .. "|" .. zOffset, "debug")
     local offsetTable = { xOffset, yOffset, zOffset }
     table.sort(offsetTable)
-    common.log("getMaxOffset, offsetTable: " .. tostring(offsetTable[#offsetTable]))
+    common.log("getMaxOffset, offsetTable: " .. tostring(offsetTable[#offsetTable]), "debug")
     local maxOffset = offsetTable[#offsetTable]
     return maxOffset
 end
@@ -111,8 +114,8 @@ local function placeTorch()
         ensureTorches()
         local torchOffset = getMaxOffset()
         common.log("torchoffset: " .. torchOffset, "debug")
-        common.log("calc1: ".. tostring(torchOffset % distance_between_torches))
-        common.log("calc2: " .. tostring((torchOffset % distance_between_torches) - 1 == 0) )
+        common.log("calc1: ".. tostring(torchOffset % distance_between_torches), "debug")
+        common.log("calc2: " .. tostring((torchOffset % distance_between_torches) - 1 == 0), "debug")
         -- Add one so we don't put a torch where we're starting blocking storage
         if (torchOffset % distance_between_torches) - 1 == 0 then
             turtle.select(torch_slot)
@@ -172,7 +175,7 @@ end
 
 local function digStep()
     ensureInventorySpace()
-    -- TODO: ensureTorch()?
+    -- TODO: ensureTorch()? / ensureFuel()?
 
     digWithFallGuard()
     turtleCommon.goForward()
@@ -180,13 +183,13 @@ local function digStep()
     placeTorch()
     digLeftAndRight()
 
-    for _=1, (tunnel_height - 1) do
+    for _=1, (tunnelHeight - 1) do
         digWithFallGuard("up")
         turtleCommon.goUp()
         digLeftAndRight()
     end
 
-    for _=1, (tunnel_height - 1) do
+    for _=1, (tunnelHeight - 1) do
         turtleCommon.goDown()
     end
 
@@ -197,13 +200,14 @@ end
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)
-    common.log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches))
+    common.log("Digging Tunnel of length/height: " .. tunnelLength .. "/" .. tunnelHeight)
     ensureTorches()
-    for i=0,lengthOfTunnel do
+    ensureFuel()
+    for i=1,tunnelLength do
         common.log("Digging: " .. i .. ", fuel left: " .. turtle.getFuelLevel(), "info")
         digStep()
     end
-    turtleCommon.dumpInventory(torch_slot, off_limits_slots, true, navigateToStorage)
+    dumpInventory(torch_slot, off_limits_slots)
     common.log("Done digging tunnel")
 end
 

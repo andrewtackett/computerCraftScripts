@@ -5,7 +5,7 @@ local numSteps = tonumber(args[1] or 1)
 local turtle = turtle
 
 turtle.turnLeft()
-for i=1,numSteps do
+for _=1,numSteps do
     turtle.forward()
 end
 turtle.turnRight()

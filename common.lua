@@ -9,6 +9,10 @@ local version = { major=1, minor=0, patch=0 }
 -- Update tunnel (any) program wirelessly
 -- Make dumpGoods program
 -- Make normal commands files/updating easier
+-- figure out startup files not working
+-- what happens if you update running software?
+-- should mining program reboot itself?
+-- should all software have a "listen for updates" loop?
 
 
 -- Ensure global APIs are recognized by linters
@@ -202,6 +206,7 @@ local function updateAll(get_commands)
     if get_commands then
         local commands = {
             [1] =  "back.lua",
+            [14] = "coordinates.lua",
             [2] =  "down.lua",
             [3] =  "forward.lua",
             [4] =  "left.lua",
@@ -214,7 +219,6 @@ local function updateAll(get_commands)
             [11] = "up.lua",
             [12] = "update.lua",
             [13] = "updateAll.lua",
-            [14] = "coordinates.lua"
         }
         for i=1,11 do
             log("Update all commands: " .. commands[i])

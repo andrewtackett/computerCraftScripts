@@ -1,7 +1,7 @@
 ---@diagnostic disable-next-line: undefined-global
-local turtleCommon = turtleCommon
+local turtle = turtle
 
-print(turtleCommon.getFuelLevel())
+print(turtle.getFuelLevel())
 
 local version = { major=1, minor=0, patch=0 }
 return {
