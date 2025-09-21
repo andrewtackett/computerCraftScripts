@@ -176,40 +176,16 @@ local function downloadFileFromGithub(repo, file_path, destination)
     end
 end
 
-local function upsertProgram(filename_or_path, overwrite_regardless, program)
-    overwrite_regardless = overwrite_regardless or false
-    program = program or filename_or_path
-    local temp_file = "tmp_" .. program
+local function upsertProgram(filename_or_path, destination)
+    destination = destination or filename_or_path
+    local temp_file = "tmp_" .. destination
     downloadFileFromGithub("andrewtackett/computerCraftScripts", filename_or_path, temp_file)
-    local file_exists = fs.exists(program)
-
-    if not file_exists then
-        log(program .. " does not exist. Installing new version.")
-        fs.delete(program)
-        fs.move(temp_file, program)
-        log("Installed " .. program)
-    else
-        local fileModule = require(program:sub(0, #program - 4))
-        local newFileModule = require(temp_file:sub(0, #temp_file - 4))
-
-        if newFileModule.version.major >= fileModule.version.major or
-           newFileModule.version.minor >= fileModule.version.minor or
-           newFileModule.version.patch >= fileModule.version.patch or
-           overwrite_regardless then
-            log("Updating " .. program)
-            fs.delete(program)
-            fs.move(temp_file, program)
-            log("Updated " .. program)
-            log("Old version: " .. fileModule.version.major .. "." .. fileModule.version.minor .. "." .. fileModule.version.patch)
-            log("New version: " .. newFileModule.version.major .. "." .. newFileModule.version.minor .. "." .. newFileModule.version.patch)
-        else
-            fs.delete(temp_file)
-            log(program .. " is up to date.")
-        end
-    end
+    fs.delete(destination)
+    fs.move(temp_file, destination)
+    log("Installed " .. destination)
 end
 
-local function updateAll(overwrite_regardless)
+local function updateAll()
     local programs = { 
         [1] = "treeFarm.lua",
         [2] = "tunnel.lua",
@@ -218,7 +194,7 @@ local function updateAll(overwrite_regardless)
     }
     for i=1,4 do
         log("Update all: " .. programs[i])
-        upsertProgram(programs[i], overwrite_regardless)
+        upsertProgram(programs[i])
         sleep(0.5)
     end
     local commands = {
@@ -236,7 +212,7 @@ local function updateAll(overwrite_regardless)
     }
     for i=1,11 do
         log("Update all commands: " .. commands[i])
-        upsertProgram("commands/" .. commands[i], overwrite_regardless, commands[i])
+        upsertProgram("commands/" .. commands[i], commands[i])
         sleep(0.5)
     end
 end
