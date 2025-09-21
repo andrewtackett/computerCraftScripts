@@ -167,8 +167,7 @@ end
 
 -- Main
 local function main()
-    local currentFileName = common.getCurrentFileName()
-    common.printProgramStartupWithVersion(currentFileName, version)
+    common.printProgramStartupWithVersion("Tunnel", version)
     common.log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches))
     ensureTorches()
     for i=0,lengthOfTunnel do

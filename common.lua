@@ -221,16 +221,10 @@ local function updateAll(get_commands)
     end
 end
 
-local function getCurrentFileName()
-    local fileWithPath = debug.getinfo(1, "S").source
-    local programName = fileWithPath:match("[^/]*.lua$")
-    return programName:sub(0, #programName - 4)
-end
-
-local function printProgramStartupWithVersion(currentFileName, program_version)
+local function printProgramStartupWithVersion(program_name, program_version)
     ---@diagnostic disable-next-line: undefined-field
     local currentComputerName = os.getComputerLabel()
-    log("Starting " .. currentFileName .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
+    log("Starting " .. program_name .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
 end
 
 local function findLastOpenInventorySlot(inventory_size, items)
@@ -251,14 +245,10 @@ return {
     throwError = throwError,
     printWithColor = printWithColor,
     waitForFix = waitForFix,
-    commonPastebin = commonPastebin,
-    tunnelPastebin = tunnelPastebin,
-    treeFarmPastebin = treeFarmPastebin,
     downloadPastebinFile = downloadPastebinFile,
     downloadFileFromGithub = downloadFileFromGithub,
     upsertProgram = upsertProgram,
     updateAll = updateAll,
-    getCurrentFileName = getCurrentFileName,
     printProgramStartupWithVersion = printProgramStartupWithVersion,
     findLastOpenInventorySlot = findLastOpenInventorySlot,
 }
