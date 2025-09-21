@@ -110,6 +110,9 @@ local function navigateToRowStartFromEnd()
         turtleCommon.goRight(1)
         turtle.suck() -- Grab any saplings on the way back
     end
+    -- Get row end
+    turtleCommon.goRight(1)
+    turtle.suck()
 end
 
 local function patrolRow()

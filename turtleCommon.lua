@@ -260,7 +260,6 @@ end
 
 local function navigateToPoint(target_x, target_y, target_z, y_first)
     local current_x, current_y, current_z = gps.locate()
-    y_first = y_first or true
     local currentDirection = determineWhichDirectionCurrentlyFacing()
     print("currentDirection " .. currentDirection)
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
