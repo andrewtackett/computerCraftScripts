@@ -159,6 +159,7 @@ local function downloadPastebinFile(pastebin_name, destination)
     shell.run("pastebin", "get", pastebin_id, destination)
 end
 
+-- NOTE: github sets a cache control header that means this won't update for 5 minutes
 -- https://raw.githubusercontent.com/andrewtackett/computerCraftScripts/main/common.lua
 local function downloadFileFromGithub(repo, file_path, destination)
     destination = destination or file_path

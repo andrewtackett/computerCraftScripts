@@ -91,9 +91,9 @@ local function placeTorch()
         local torchOffset = getMaxOffset()
         common.log("torchoffset: " .. torchOffset, "debug")
         common.log("calc1: ".. tostring(torchOffset % distance_between_torches))
-        common.log("calc2: " .. tostring((torchOffset % distance_between_torches) + 1 == 0) )
+        common.log("calc2: " .. tostring((torchOffset % distance_between_torches) - 1 == 0) )
         -- Add one so we don't put a torch where we're starting blocking storage
-        if (torchOffset % distance_between_torches) + 1 == 0 then
+        if (torchOffset % distance_between_torches) - 1 == 0 then
             turtle.select(torch_slot)
             turtle.turnRight()
             turtle.turnRight()

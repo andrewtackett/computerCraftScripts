@@ -124,7 +124,7 @@ end
 
 local function restockItem(desired_item_name, needed_items, slot_to_suck_into, default_slot)
     common.log("Restocking " .. desired_item_name, "info")
-    local needed_items_left = needed_items + 1 -- Get one extra to keep first slot occupied by fuel item
+    local needed_items_left = needed_items
     local chest = peripheral.wrap("front")
     local items = chest.list()
     local inventory_size = chest.size()
@@ -259,47 +259,65 @@ local function getNavigationFunctionsFromDirection(currentDirection)
 end
 
 local function navigateToPoint(target_x, target_y, target_z, y_first)
-    local current_x, current_y, current_z = gps.locate()
     y_first = y_first or true
     local currentDirection = determineWhichDirectionCurrentlyFacing()
     print("currentDirection " .. currentDirection)
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
-
-    while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
-        local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
-        print("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
-
-        if y_first then
-            print("Doing Y dir")
-            if current_y < target_y then
-                goUp(yOffset)
-            elseif current_y > target_y then
-                goDown(yOffset)
-            end
+    local function navY(current_y, yOffset)
+        print("Doing Y dir")
+        if current_y < target_y then
+            goUp(yOffset)
+        elseif current_y > target_y then
+            goDown(yOffset)
         end
+    end
 
+    local function navX(current_x, xOffset)
         print("Doing x dir")
         if current_x < target_x then
             goXPos(xOffset)
         elseif current_x > target_x then
             goXNeg(xOffset)
         end
+    end
 
+    local function navZ(current_z, zOffset)
         print("Doing z dir")
         if current_z < target_z then
             goZPos(zOffset)
         elseif current_z > target_z then
             goZNeg(zOffset)
         end
+    end
 
-        if not y_first then
-            print("Doing Y dir")
-            if current_y < target_y then
-                goUp(yOffset)
-            elseif current_y > target_y then
-                goDown(yOffset)
+    local current_x, current_y, current_z = gps.locate()
+    while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
+        local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
+        print("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
+
+        if y_first then
+            -- Move current direction axis last to avoid torches
+            if currentDirection == "xPos" or currentDirection == "xNeg" then
+                navY(current_y, yOffset)
+                navZ(current_z, zOffset)
+                navX(current_x, xOffset)
+            else
+                navY(current_y, yOffset)
+                navX(current_z, zOffset)
+                navZ(current_x, xOffset)
+            end
+        else
+            if currentDirection == "xPos" or currentDirection == "xNeg" then
+                navZ(current_z, zOffset)
+                navX(current_x, xOffset)
+                navY(current_y, yOffset)
+            else
+                navX(current_z, zOffset)
+                navZ(current_x, xOffset)
+                navY(current_y, yOffset)
             end
         end
+
         current_x, current_y, current_z = gps.locate()
     end
 end
