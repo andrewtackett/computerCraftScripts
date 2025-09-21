@@ -184,13 +184,13 @@ local function upsertProgram(filename_or_path, overwrite_regardless, program)
     local file_exists = fs.exists(program)
 
     if not file_exists then
-        log(program " does not exist. Installing new version.")
+        log(program .. " does not exist. Installing new version.")
         fs.delete(program)
         fs.move(temp_file, program)
         log("Installed " .. program)
     else
-        local fileModule = require(program)
-        local newFileModule = require(temp_file)
+        local fileModule = require(program:sub(0, #program - 4))
+        local newFileModule = require(temp_file:sub(0, #temp_file - 4))
 
         if newFileModule.version.major >= fileModule.version.major or
            newFileModule.version.minor >= fileModule.version.minor or
