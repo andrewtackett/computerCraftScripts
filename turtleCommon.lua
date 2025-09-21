@@ -293,15 +293,20 @@ local function navigateToStorage()
     local storageZ = tonumber(config["storageZ"])
     print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
     navigateToPoint(storageX, storageY, storageZ)
+    print("Arrived at storage")
 end
 
 local function dumpInventory(default_slot, off_limits_slots)
     default_slot = default_slot or 1
     local currentX, currentY, currentZ = gps.locate()
     navigateToStorage()
+    print("pre turn right")
     turtle.turnRight()
+    print("post turn right")
     storeGoods(default_slot, off_limits_slots)
+    print("pre turn left")
     turtle.turnLeft()
+    print("post turn left")
     common.log("Returning to start")
     navigateToPoint(currentX, currentY, currentZ)
 end
