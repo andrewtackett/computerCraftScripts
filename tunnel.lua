@@ -30,6 +30,8 @@ local storageZ = tonumber(config["storageZ"])
 
 local startX, startY, startZ = gps.locate()
 print("Debugging, start coords: ", startX, startY, startZ)
+print("Debug, loggingMode: " .. config["loggingMode"])
+common.log("test debug message","debug")
 
 local torch_slot = 16
 local off_limits_slots = { [16] = true }
@@ -75,8 +77,10 @@ local function getMaxOffset()
     local xOffset = storageX - currentX
     local yOffset = storageY - currentY
     local zOffset = storageZ - currentZ
+    common.log("getMaxOffset: " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
     local offsetTable = { xOffset, yOffset, zOffset }
     table.sort(offsetTable)
+    common.log("getMaxOffset, offsetTable: " .. offsetTable)
     local maxOffset = offsetTable[#offsetTable]
     return maxOffset
 end
@@ -85,6 +89,9 @@ local function placeTorch()
     if placeTorches then
         ensureTorches()
         local torchOffset = getMaxOffset()
+        common.log("torchoffset: " .. torchOffset, "debug")
+        common.log("calc1: ".. tostring(torchOffset % distance_between_torches))
+        common.log("calc2: " .. tostring((torchOffset % distance_between_torches) + 1 == 0) )
         -- Add one so we don't put a torch where we're starting blocking storage
         if (torchOffset % distance_between_torches) + 1 == 0 then
             turtle.select(torch_slot)
