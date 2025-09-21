@@ -169,9 +169,9 @@ local function ensureFuel(min_fuel_level, fuel_item_name, fuel_slot, default_slo
         local current_fuel = turtle.getFuelLevel()
         local needed_fuel = min_fuel_level - current_fuel
         local needed_items = math.ceil(needed_fuel / 15)
-        print("Refueling from " .. current_fuel .. " to " .. min_fuel_level .. ", need " .. needed_items .. " items")
+        common.log("Refueling from " .. current_fuel .. " to " .. min_fuel_level .. ", need " .. needed_items .. " items")
         if turtle.getItemCount(fuel_slot) < needed_items then
-            print("Not enough fuel in fuel slot!")
+            common.log("Not enough fuel in fuel slot!","warning")
             restockItem(fuel_item_name, needed_items)
             if turtle.getItemCount(fuel_slot) < needed_items then
                 common.throwError("Not enough fuel in storage!")
@@ -261,15 +261,15 @@ end
 local function navigateToPoint(target_x, target_y, target_z, y_first)
     local current_x, current_y, current_z = gps.locate()
     local currentDirection = determineWhichDirectionCurrentlyFacing()
-    print("currentDirection " .. currentDirection)
+    common.log("currentDirection " .. currentDirection)
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
 
     while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
         local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
-        print("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
+        common.log("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset, "debug")
 
         if y_first then
-            print("Doing Y dir")
+            common.log("Doing Y dir", "debug")
             if current_y < target_y then
                 goUp(yOffset)
             elseif current_y > target_y then
@@ -278,28 +278,28 @@ local function navigateToPoint(target_x, target_y, target_z, y_first)
         end
 
         if currentDirection == "xPos" or currentDirection == "xNeg" then
-            print("Doing x dir")
+            common.log("Doing x dir", "debug")
             if current_x < target_x then
                 goXPos(xOffset)
             elseif current_x > target_x then
                 goXNeg(xOffset)
             end
 
-            print("Doing z dir")
+            common.log("Doing z dir", "debug")
             if current_z < target_z then
                 goZPos(zOffset)
             elseif current_z > target_z then
                 goZNeg(zOffset)
             end
         elseif currentDirection == "zPos" or currentDirection == "zNeg" then
-            print("Doing z dir")
+            common.log("Doing z dir", "debug")
             if current_z < target_z then
                 goZPos(zOffset)
             elseif current_z > target_z then
                 goZNeg(zOffset)
             end
 
-            print("Doing x dir")
+            common.log("Doing x dir", "debug")
             if current_x < target_x then
                 goXPos(xOffset)
             elseif current_x > target_x then
@@ -309,7 +309,7 @@ local function navigateToPoint(target_x, target_y, target_z, y_first)
 
 
         if not y_first then
-            print("Doing Y dir")
+            common.log("Doing Y dir", "debug")
             if current_y < target_y then
                 goUp(yOffset)
             elseif current_y > target_y then

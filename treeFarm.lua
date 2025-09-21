@@ -96,7 +96,7 @@ end
 
 local function navigateToRowStartFromChest()
     common.log("Navigating to row start from chest")
-    turtleCommon.navigateToPoint(treeStartX, treeStartY, treeStartZ, false)
+    turtleCommon.navigateToPoint(treeStartX, treeStartY, treeStartZ, true)
 end
 
 local function navigateToChestFromRowStart()

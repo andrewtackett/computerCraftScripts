@@ -52,9 +52,9 @@ local function dumpInventory(default_slot, off_limits_slots, return_to_previous)
     turtle.turnRight()
     turtleCommon.storeGoods(default_slot, off_limits_slots)
     turtle.turnLeft()
-    common.log("Returning to start")
-    turtleCommon.goLeft()
     if return_to_previous then
+        common.log("Returning to start")
+        turtleCommon.goLeft()
         turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
     end
 end
