@@ -263,7 +263,7 @@ local function navigateToPoint(target_x, target_y, target_z)
 
     while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
         local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
-        print("offsets " .. xOffset "|" .. yOffset .. "|" .. zOffset)
+        print("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
 
         if current_x < target_x then
             goXPos(xOffset)

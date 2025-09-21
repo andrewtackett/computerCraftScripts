@@ -196,7 +196,7 @@ local function updateAll(get_commands)
     for i=1,4 do
         log("Update all: " .. programs[i])
         upsertProgram(programs[i])
-        sleep(0.5)
+        sleep(1)
     end
     if get_commands then
         local commands = {
@@ -217,7 +217,7 @@ local function updateAll(get_commands)
         for i=1,11 do
             log("Update all commands: " .. commands[i])
             upsertProgram("commands/" .. commands[i], commands[i])
-            sleep(0.5)
+            sleep(1)
         end
     end
 end
