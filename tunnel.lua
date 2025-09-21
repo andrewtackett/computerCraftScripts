@@ -74,9 +74,9 @@ end
 
 local function getMaxOffset()
     local currentX, currentY, currentZ = gps.locate()
-    local xOffset = storageX - currentX
-    local yOffset = storageY - currentY
-    local zOffset = storageZ - currentZ
+    local xOffset = math.abs(storageX - currentX)
+    local yOffset = math.abs(storageY - currentY)
+    local zOffset = math.abs(storageZ - currentZ)
     common.log("getMaxOffset: " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
     local offsetTable = { xOffset, yOffset, zOffset }
     table.sort(offsetTable)
