@@ -7,66 +7,42 @@ local version = { major=1, minor=0, patch=0 }
 local common = require("common")
 local turtleCommon = require("turtleCommon")
 
-local args = {...}
-if #args < 1 then
-    print("Usage: tunnel <lengthOfTunnel> [placeTorches] [torchOffset] [tunnelStartOffset] [loggingMode]")
-    return
-end
-local lengthOfTunnel = args[1]
-local placeTorches = args[2] == "true" or false
-local torchOffset = args[3] or 0
-local tunnelStartOffset = args[4] or 0
-
-local config = common.readConfigFile("config.cfg")
-local storageX = config["storageX"]
-local storageY = config["storageY"]
-local storageZ = config["storageZ"]
-
-local torch_slot = 16
-local distance_between_torches = 6
-local tunnel_height = 8
-local items_to_compact_tags = "allthecompressed:1x"
-
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
 local turtle = turtle
 ---@diagnostic disable-next-line: undefined-global
 local sleep = sleep
+---@diagnostic disable-next-line: undefined-global
+local gps = gps
 
-local loggingMode = config["loggingMode"] or args[5] or "normal"
-local function log(msg, level)
-    common.log(loggingMode, msg, level)
+local args = {...}
+if #args < 1 then
+    print("Usage: tunnel <lengthOfTunnel> [placeTorches] [loggingMode]")
+    return
 end
+local config = common.readConfigFile()
+local lengthOfTunnel = args[1]
+local placeTorches = args[2] == "true" or false
 
-local function navigateFromTunnelStoppingPointToTunnelStart(steps_taken_forward, steps_taken_up)
-    log("Navigating to tunnel start", "info")
-    turtleCommon.goDown(steps_taken_up)
-    turtleCommon.goLeft()
-    turtleCommon.goBack(steps_taken_forward + tunnelStartOffset)
-    turtleCommon.goRight()
-end
+local startX, startY, startZ = gps.locate()
+local storageX = config["storageX"] or startX
+local storageY = config["storageY"] or startY
+local storageZ = config["storageZ"] or startZ
+print("Debugging, start coords: ", startX, startY, startZ)
 
-local function navigateFromTunnelStartToTunnelStoppingPoint(steps_taken_forward, steps_taken_up)
-    log("Navigating from tunnel start to stopping point", "info")
-    turtleCommon.goLeft()
-    turtleCommon.goForward(steps_taken_forward + tunnelStartOffset)
-    turtleCommon.goRight()
-    turtleCommon.goUp(steps_taken_up)
-end
+local torch_slot = 16
+local off_limits_slots = { [16] = true }
+local distance_between_torches = 6
+local tunnel_height = 8
+local items_to_compact_tags = "allthecompressed:1x"
 
+-- TODO
 -- local function compactItems()
 --     log("Compacting items", "info")
 -- end
 
-local function dumpInventory(step_number)
-    navigateFromTunnelStoppingPointToTunnelStart(step_number, 0)
-    turtle.turnRight()
-    turtleCommon.storeGoods()
-    turtle.turnLeft()
-    navigateFromTunnelStartToTunnelStoppingPoint(step_number, 0)
-end
 
-local function ensureInventorySpace(step_number)
+local function ensureInventorySpace()
     local function checkInventory()
         for i=1,16 do
             if turtle.getItemCount(i) == 0 then
@@ -76,33 +52,46 @@ local function ensureInventorySpace(step_number)
         return false
     end
     if not checkInventory() then
-        log("No inventory space left!", "warning")
-        dumpInventory(step_number)
+        common.log("No inventory space left!", "warning")
+        turtleCommon.dumpInventory(torch_slot, off_limits_slots)
         common.waitForFix(checkInventory, 30)
     end
 end
 
+-- TODO: make this fetch from chest/dump inventory
 local function ensureTorches()
     local function checkTorches()
         turtle.select(torch_slot)
         return turtle.getItemCount(torch_slot) > 0
     end
     if not checkTorches() then
-        log("Out of torches!", "error")
+        common.log("Out of torches!", "error")
         common.waitForFix(checkTorches, 30)
     end
 end
 
-local function placeTorch(step_number)
+local function getMaxOffset()
+    local currentX, currentY, currentZ = gps.locate()
+    local xOffset = storageX - currentX
+    local yOffset = storageY - currentY
+    local zOffset = storageZ - currentZ
+    local offsetTable = { xOffset, yOffset, zOffset }
+    table.sort(offsetTable)
+    local maxOffset = offsetTable[#offsetTable]
+    return maxOffset
+end
+
+local function placeTorch()
     ensureTorches()
-    if placeTorches and ((step_number + torchOffset) % distance_between_torches == 0) then
+    local torchOffset = getMaxOffset()
+    if placeTorches and ( torchOffset % distance_between_torches == 0) then
         turtle.select(torch_slot)
         turtle.turnRight()
         turtle.turnRight()
         turtle.place()
         turtle.turnLeft()
         turtle.turnLeft()
-        log("Placed torch at step " .. step_number, "debug")
+        common.log("Placed torch", "debug")
     end
 end
 
@@ -117,7 +106,7 @@ local function digWithFallGuard(direction)
     digFunc()
     local detected, _ = detectFunc()
     while detected do
-        log("Waiting for falling blocks?", "debug")
+        common.log("Waiting for falling blocks?", "debug")
         digFunc()
         sleep(1)
         detected, _ = detectFunc()
@@ -150,15 +139,14 @@ local function clearLeftAndRightFallingItems()
     digLeftAndRight()
 end
 
-local function digStep(step_number)
-    log("Digging: " .. step_number .. " fuel left: " .. turtle.getFuelLevel(), "info")
-    ensureInventorySpace(step_number)
-    -- ensureTorch()?
+local function digStep()
+    ensureInventorySpace()
+    -- TODO: ensureTorch()?
 
     digWithFallGuard()
     turtleCommon.goForward()
     clearAboveFallingItemsFromLastStep()
-    placeTorch(step_number)
+    placeTorch()
     digLeftAndRight()
 
     for _=0, tunnel_height do
@@ -176,15 +164,20 @@ local function digStep(step_number)
 end
 
 -- Main
-log("Tunnel v" .. version["major"] .. "." .. version["minor"] .. "." .. version["patch"] .. " starting...", "info")
-log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches) .. ", Torch Offset: " .. torchOffset .. ", Tunnel Start Offset: " .. tunnelStartOffset .. ", Logging Mode: " .. loggingMode, "info")
-log("--------------------------------------------------")
-ensureTorches()
-for i=0,(lengthOfTunnel - 1) do
-    digStep(i)
-    dumpInventory(i)
+local function main()
+    common.printProgramStartupWithVersion(version)
+    common.log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches))
+    ensureTorches()
+    for i=0,lengthOfTunnel do
+        common.log("Digging: " .. i .. ", fuel left: " .. turtle.getFuelLevel(), "info")
+        digStep()
+        turtleCommon.dumpInventory(i)
+    end
 end
+
+main()
 
 return {
     version = version,
+    main = main,
 }

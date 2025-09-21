@@ -78,6 +78,7 @@ local function split(pString, pPattern)
 end
 
 local function readConfigFile(file_name)
+    file_name = file_name or "config.cfg"
     local config = {}
     local file = fs.open(file_name, "r")
     local line = file.readLine()
@@ -91,7 +92,7 @@ local function readConfigFile(file_name)
 end
 
 local function log(msg, level, loggingMode)
-    local config = readConfigFile("config.cfg")
+    local config = readConfigFile()
     level = level or "info"
     loggingMode = loggingMode or config["loggingMode"] or "normal"
     local color = info_color
@@ -116,13 +117,6 @@ local function log(msg, level, loggingMode)
     print(msg)
     term.setTextColor(default_color)
 end
-
--- Example in local file to wrap:
--- local loggingMode = config["loggingMode"] or "normal"
--- local common = require("common")
--- local function log(msg, level)
---     common.log(msg, level, loggingMode)
--- end
 
 -- TODO
 local function logWithOutputRecord(loggingMode, outputLog, msg, level)
@@ -155,6 +149,7 @@ local tunnelPastebin = "QwFw5crR"
 local treeFarmPastebin = "wTY6LrZY"
 local function downloadPastebinFile(pastebin_name, destination)
     local pastebin_id = commonPastebin
+    destination = destination or (pastebin_name .. ".lua")
     if pastebin_name == "tunnel" then
         pastebin_id = tunnelPastebin
     elseif pastebin_name == "treeFarm" then
@@ -166,6 +161,7 @@ end
 
 -- https://raw.githubusercontent.com/andrewtackett/computerCraftScripts/main/common.lua
 local function downloadFileFromGithub(repo, file_path, destination)
+    destination = destination or file_path
     local url = "https://raw.githubusercontent.com/" .. repo .. "/main/" .. file_path
     log("Downloading " .. file_path .. " from " .. url)
     local response = http.get(url)
@@ -180,23 +176,66 @@ local function downloadFileFromGithub(repo, file_path, destination)
     end
 end
 
-local function updateProgram(program_name)
-    downloadFileFromGithub("andrewtackett/computerCraftScripts", program_name, program_name)
-    local temp_file = "tmp_" .. program_name
-    local fileModule = require(program_name)
-    local newFileModule = require(temp_file)
-    if newFileModule.version.major >= fileModule.version.major or
-       newFileModule.version.minor >= fileModule.version.minor or
-       newFileModule.version.patch >= fileModule.version.patch then
-        log("Updating " .. program_name .. " from pastebin...")
-        fs.delete(program_name)
-        fs.move(temp_file, program_name)
-        log("Updated " .. program_name)
-        log("Old version: " .. fileModule.version.major .. "." .. fileModule.version.minor .. "." .. fileModule.version.patch)
-        log("New version: " .. newFileModule.version.major .. "." .. newFileModule.version.minor .. "." .. newFileModule.version.patch)
+local function upsertProgram(filename_or_path, overwrite_regardless, program)
+    overwrite_regardless = overwrite_regardless or false
+    program = program or filename_or_path
+    local temp_file = "tmp_" .. program
+    downloadFileFromGithub("andrewtackett/computerCraftScripts", filename_or_path, temp_file)
+    local file_exists = fs.exists(program)
+
+    if not file_exists then
+        log(program " does not exist. Installing new version.")
+        fs.delete(program)
+        fs.move(temp_file, program)
+        log("Installed " .. program)
     else
-        fs.delete(temp_file)
-        log(program_name .. " is up to date.")
+        local fileModule = require(program)
+        local newFileModule = require(temp_file)
+
+        if newFileModule.version.major >= fileModule.version.major or
+           newFileModule.version.minor >= fileModule.version.minor or
+           newFileModule.version.patch >= fileModule.version.patch or
+           overwrite_regardless then
+            log("Updating " .. program)
+            fs.delete(program)
+            fs.move(temp_file, program)
+            log("Updated " .. program)
+            log("Old version: " .. fileModule.version.major .. "." .. fileModule.version.minor .. "." .. fileModule.version.patch)
+            log("New version: " .. newFileModule.version.major .. "." .. newFileModule.version.minor .. "." .. newFileModule.version.patch)
+        else
+            fs.delete(temp_file)
+            log(program .. " is up to date.")
+        end
+    end
+end
+
+local function updateAll(overwrite_regardless)
+    local programs = { 
+        [1] = "treeFarm.lua",
+        [2] = "tunnel.lua",
+        [3] = "turtleCommon.lua",
+        [4] = "common.lua"
+    }
+    for i=1,4 do
+        log("Update all: " .. programs[i])
+        upsertProgram(programs[i], overwrite_regardless)
+    end
+    local commands = {
+        [1] =  "back.lua",
+        [2] =  "down.lua",
+        [3] =  "forward.lua",
+        [4] =  "left.lua",
+        [5] =  "printfuel.lua",
+        [6] =  "refuel.lua",
+        [7] =  "right.lua",
+        [8] =  "select.lua",
+        [9] =  "tleft.lua",
+        [10] = "tright.lua",
+        [11] = "up.lua",
+    }
+    for i=1,11 do
+        log("Update all commands: " .. commands[i])
+        upsertProgram("commands/" .. commands[i], overwrite_regardless, commands[i])
     end
 end
 
@@ -206,12 +245,12 @@ local function getCurrentFileName()
     return programName:sub(0, #programName - 4)
 end
 
-local function printProgramStartupWithVersion()
+local function printProgramStartupWithVersion(program_version)
     local currentFileName = getCurrentFileName()
----@diagnostic disable-next-line: undefined-field
+    ---@diagnostic disable-next-line: undefined-field
     local currentComputerName = os.getComputerLabel()
     log("Starting " .. currentFileName .. 
-        " v" .. version["major"] .. "." .. version["minor"] .. "." .. version["patch"]
+        " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"]
         .. " on " .. currentComputerName
     )
 end
@@ -239,7 +278,8 @@ return {
     treeFarmPastebin = treeFarmPastebin,
     downloadPastebinFile = downloadPastebinFile,
     downloadFileFromGithub = downloadFileFromGithub,
-    updateProgram = updateProgram,
+    upsertProgram = upsertProgram,
+    updateAll = updateAll,
     getCurrentFileName = getCurrentFileName,
     printProgramStartupWithVersion = printProgramStartupWithVersion,
     findLastOpenInventorySlot = findLastOpenInventorySlot,

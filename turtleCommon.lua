@@ -3,6 +3,7 @@
 local turtle = turtle
 local version = { major=1, minor=0, patch=0 }
 local common = require("common")
+local config = common.readConfigFile()
 
 ---@diagnostic disable-next-line: undefined-global
 local peripheral = peripheral
@@ -112,6 +113,7 @@ local function storeGoods(default_slot, off_limits_slots)
     turtle.select(default_slot)
 end
 
+-- TODO: convert
 local function restockItem(desired_item_name, needed_items)
     common.log("Restocking " .. desired_item_name, "info")
     local needed_items_left = needed_items + 1 -- Get one extra to keep first slot occupied by fuel item
@@ -158,6 +160,7 @@ local function restockItem(desired_item_name, needed_items)
     turtle.select(sapling_slot)
 end
 
+-- TODO: convert
 local function ensureFuel(min_fuel_level, fuel_item_name, fuel_slot, default_slot)
     if turtle.getFuelLevel() < min_fuel_level then
         local current_fuel = turtle.getFuelLevel()
@@ -180,36 +183,109 @@ local function ensureFuel(min_fuel_level, fuel_item_name, fuel_slot, default_slo
     end
 end
 
-local function navigateToPoint(target_x, target_y, target_z)
-    local x,y,z = gps.locate()
-    local current_pos = {x = x, y = y, z = z}
-    local target_pos = {x = target_x, y = target_y, z = target_z}
-
-    while current_pos.x ~= target_pos.x or current_pos.y ~= target_pos.y or current_pos.z ~= target_pos.z do
-        if current_pos.x < target_pos.x then
-            goRight()
-            current_pos.x = current_pos.x + 1
-        elseif current_pos.x > target_pos.x then
-            goLeft()
-            current_pos.x = current_pos.x - 1
+local function determineWhichDirectionCurrentlyFacing()
+    local x, _y, z = gps.locate()
+    goForward(1)
+    local x2, _y2, z2 = gps.locate()
+    local xOffset = x2 - x
+    local zOffset = z2 - z
+    local direction = ""
+    if xOffset ~= 0 then
+        if xOffset < 0 then
+            direction = "xNeg"
+        else
+            direction = "xPos"
         end
-
-        if current_pos.y < target_pos.y then
-            goUp()
-            current_pos.y = current_pos.y + 1
-        elseif current_pos.y > target_pos.y then
-            goDown()
-            current_pos.y = current_pos.y - 1
-        end
-
-        if current_pos.z < target_pos.z then
-            goForward()
-            current_pos.z = current_pos.z + 1
-        elseif current_pos.z > target_pos.z then
-            goBack()
-            current_pos.z = current_pos.z - 1
+    elseif zOffset ~= 0 then
+        if zOffset < 0 then
+            direction = "zNeg"
+        else
+            direction = "zPos"
         end
     end
+    goBack(1)
+    return direction
+end
+
+local function getNavigationFunctionsFromDirection(currentDirection)
+    local goXPos, goXNeg, goZPos, goZNeg
+    if currentDirection == "xPos" then
+        goXPos = goForward
+        goXNeg = goBack
+        goZPos = goRight
+        goZNeg = goLeft
+    elseif currentDirection == "xNeg" then
+        goXPos = goBack
+        goXNeg = goForward
+        goZPos = goLeft
+        goZNeg = goRight
+    elseif currentDirection == "zPos" then
+        goXPos = goLeft
+        goXNeg = goRight
+        goZPos = goForward
+        goZNeg = goBack
+    elseif currentDirection == "zNeg" then
+        goXPos = goRight
+        goXNeg = goLeft
+        goZPos = goBack
+        goZNeg = goForward
+    end
+    return goXPos, goXNeg, goZPos, goZNeg
+end
+
+local function coordinatesToInt(x, y, z)
+    return math.floor(x), math.floor(y), math.floor(z)
+end
+
+local function navigateToPoint(target_x, target_y, target_z)
+    target_x, target_y, target_z = coordinatesToInt(target_x, target_y, target_z)
+    local current_x, current_y, current_z = gps.locate()
+    current_x, current_y, current_z = coordinatesToInt(current_x, current_y, current_z)
+    local currentDirection = determineWhichDirectionCurrentlyFacing()
+    local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
+
+    while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
+        local xOffset, yOffset, zOffset = coordinatesToInt(math.abs(target_x - current_x), 
+                                                           math.abs(target_y - current_y), 
+                                                           math.abs(target_z - current_z))
+
+        if current_x < target_x then
+            goXPos(xOffset)
+        elseif current_x > target_x then
+            goXNeg(xOffset)
+        end
+
+        if current_y < target_y then
+            goUp(yOffset)
+        elseif current_y > target_y then
+            goDown(yOffset)
+        end
+
+        if current_z < target_z then
+            goZPos(zOffset)
+        elseif current_z > target_z then
+            goZNeg(zOffset)
+        end
+        current_x, current_y, current_z = gps.locate()
+        current_x, current_y, current_z = coordinatesToInt(current_x, current_y, current_z)
+    end
+end
+
+local function navigateToStorage()
+    common.log("Navigating to storage")
+    local storageX = config["storageX"]
+    local storageY = config["storageY"]
+    local storageZ = config["storageZ"]
+    navigateToPoint(storageX, storageY, storageZ)
+end
+
+local function dumpInventory(default_slot, off_limits_slots)
+    default_slot = default_slot or 1
+    local currentX, currentY, currentZ = gps.locate()
+    navigateToStorage()
+    storeGoods(default_slot, off_limits_slots)
+    common.log("Returning to start")
+    navigateToPoint(currentX, currentY, currentZ)
 end
 
 return {
@@ -227,5 +303,10 @@ return {
     storeGoods = storeGoods,
     restockItem = restockItem,
     ensureFuel = ensureFuel,
+    determineWhichDirectionCurrentlyFacing = determineWhichDirectionCurrentlyFacing,
+    getNavigationFunctionsFromDirection = getNavigationFunctionsFromDirection,
+    coordinatesToInt = coordinatesToInt,
     navigateToPoint = navigateToPoint,
+    navigateToStorage = navigateToStorage,
+    dumpInventory = dumpInventory,
 }

@@ -4,7 +4,7 @@ if #args < 3 then
     print("Usage: update <program_name> <pastebin_id> <turtle|computer id>")
     return
 end
-local version = { major=1, minor=0, patch=0 }
+local version = { major=0, minor=0, patch=0 }
 
 -- download from pastebin to local
 -- list latest robot version

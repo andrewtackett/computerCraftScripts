@@ -101,6 +101,7 @@ local function safeDig()
     end
 end
 
+-- TODO: replace with digWithFallGuard("up")
 local function safeDigUp()
     if not turtle.digUp() then
         throwError("Failed to dig up. Stopping...")
