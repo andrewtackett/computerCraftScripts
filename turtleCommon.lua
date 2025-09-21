@@ -299,7 +299,9 @@ local function dumpInventory(default_slot, off_limits_slots)
     default_slot = default_slot or 1
     local currentX, currentY, currentZ = gps.locate()
     navigateToStorage()
+    turtle.turnRight()
     storeGoods(default_slot, off_limits_slots)
+    turtle.turnLeft()
     common.log("Returning to start")
     navigateToPoint(currentX, currentY, currentZ)
 end
