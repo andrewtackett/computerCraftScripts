@@ -185,7 +185,8 @@ local function upsertProgram(filename_or_path, destination)
     log("Installed " .. destination)
 end
 
-local function updateAll()
+local function updateAll(get_commands)
+    get_commands = get_commands or false
     local programs = { 
         [1] = "treeFarm.lua",
         [2] = "tunnel.lua",
@@ -197,23 +198,26 @@ local function updateAll()
         upsertProgram(programs[i])
         sleep(0.5)
     end
-    local commands = {
-        [1] =  "back.lua",
-        [2] =  "down.lua",
-        [3] =  "forward.lua",
-        [4] =  "left.lua",
-        [5] =  "printfuel.lua",
-        [6] =  "refuel.lua",
-        [7] =  "right.lua",
-        [8] =  "select.lua",
-        [9] =  "tleft.lua",
-        [10] = "tright.lua",
-        [11] = "up.lua",
-    }
-    for i=1,11 do
-        log("Update all commands: " .. commands[i])
-        upsertProgram("commands/" .. commands[i], commands[i])
-        sleep(0.5)
+    if get_commands then
+        local commands = {
+            [1] =  "back.lua",
+            [2] =  "down.lua",
+            [3] =  "forward.lua",
+            [4] =  "left.lua",
+            [5] =  "printfuel.lua",
+            [6] =  "refuel.lua",
+            [7] =  "right.lua",
+            [8] =  "select.lua",
+            [9] =  "tleft.lua",
+            [10] = "tright.lua",
+            [11] = "up.lua",
+            [12] = "update.lua"
+        }
+        for i=1,11 do
+            log("Update all commands: " .. commands[i])
+            upsertProgram("commands/" .. commands[i], commands[i])
+            sleep(0.5)
+        end
     end
 end
 

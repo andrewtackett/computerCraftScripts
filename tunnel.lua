@@ -17,7 +17,7 @@ local gps = gps
 
 local args = {...}
 if #args < 1 then
-    print("Usage: tunnel <lengthOfTunnel> [placeTorches] [loggingMode]")
+    print("Usage: tunnel <lengthOfTunnel> [placeTorches]")
     return
 end
 local config = common.readConfigFile()
@@ -82,16 +82,18 @@ local function getMaxOffset()
 end
 
 local function placeTorch()
-    ensureTorches()
-    local torchOffset = getMaxOffset()
-    if placeTorches and ( torchOffset % distance_between_torches == 0) then
-        turtle.select(torch_slot)
-        turtle.turnRight()
-        turtle.turnRight()
-        turtle.place()
-        turtle.turnLeft()
-        turtle.turnLeft()
-        common.log("Placed torch", "debug")
+    if placeTorches then
+        ensureTorches()
+        local torchOffset = getMaxOffset()
+        if torchOffset % distance_between_torches == 0 then
+            turtle.select(torch_slot)
+            turtle.turnRight()
+            turtle.turnRight()
+            turtle.place()
+            turtle.turnLeft()
+            turtle.turnLeft()
+            common.log("Placed torch", "debug")
+        end
     end
 end
 
