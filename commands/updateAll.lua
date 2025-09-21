@@ -1,11 +1,9 @@
 local version = { major=1, minor=0, patch=0 }
 local common = require("common")
 local args = {...}
-local program_to_update = args[1]
-local program_path = args[2] or program_to_update
-print("Updating: " .. program_path .. " - " .. program_to_update)
+local get_commands = args[1] == "true" or false
 
-common.upsertProgram(program_path, program_to_update)
+common.updateAll(get_commands)
 
 -- pastebin get QgA4Vxi2 common.lua
 
