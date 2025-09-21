@@ -292,6 +292,20 @@ local function navigateToPoint(target_x, target_y, target_z, y_first)
             elseif current_z > target_z then
                 goZNeg(zOffset)
             end
+        elseif currentDirection == "zPos" or currentDirection == "zNeg" then
+            print("Doing z dir")
+            if current_z < target_z then
+                goZPos(zOffset)
+            elseif current_z > target_z then
+                goZNeg(zOffset)
+            end
+
+            print("Doing x dir")
+            if current_x < target_x then
+                goXPos(xOffset)
+            elseif current_x > target_x then
+                goXNeg(xOffset)
+            end
         end
 
 

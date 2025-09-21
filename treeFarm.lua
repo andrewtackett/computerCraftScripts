@@ -107,7 +107,7 @@ end
 local function navigateToRowStartFromEnd()
     common.log("Navigating to row start from end of row, distance " .. row_length)
     for i = 1, row_length do
-        goRight(1)
+        turtleCommon.goRight(1)
         turtle.suck() -- Grab any saplings on the way back
     end
 end
@@ -119,11 +119,11 @@ local function patrolRow()
             common.log("No sapling at " .. i .. ", planting new tree")
             turtle.select(sapling_slot)
             turtle.place()
-        elseif detectLog() then
+        elseif turtleCommon.detectLog() then
             common.log("Tree detected at " .. i .. ", harvesting")
             harvestTree()
         end
-        goLeft(1)
+        turtleCommon.goLeft(1)
     end
 
     navigateToRowStartFromEnd()
