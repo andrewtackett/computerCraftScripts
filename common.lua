@@ -219,6 +219,7 @@ local function updateAll(overwrite_regardless)
     for i=1,4 do
         log("Update all: " .. programs[i])
         upsertProgram(programs[i], overwrite_regardless)
+        sleep(0.5)
     end
     local commands = {
         [1] =  "back.lua",
@@ -236,6 +237,7 @@ local function updateAll(overwrite_regardless)
     for i=1,11 do
         log("Update all commands: " .. commands[i])
         upsertProgram("commands/" .. commands[i], overwrite_regardless, commands[i])
+        sleep(0.5)
     end
 end
 
