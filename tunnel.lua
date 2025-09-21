@@ -84,7 +84,8 @@ local function placeTorch()
     if placeTorches then
         ensureTorches()
         local torchOffset = getMaxOffset()
-        if torchOffset % distance_between_torches == 0 then
+        -- Add one so we don't put a torch where we're starting blocking storage
+        if (torchOffset % distance_between_torches) + 1 == 0 then
             turtle.select(torch_slot)
             turtle.turnRight()
             turtle.turnRight()
@@ -166,7 +167,8 @@ end
 
 -- Main
 local function main()
-    common.printProgramStartupWithVersion(version)
+    local currentFileName = common.getCurrentFileName()
+    common.printProgramStartupWithVersion(currentFileName, version)
     common.log("Digging Tunnel of length: " .. lengthOfTunnel .. ", Place Torches: " .. tostring(placeTorches))
     ensureTorches()
     for i=0,lengthOfTunnel do

@@ -227,8 +227,7 @@ local function getCurrentFileName()
     return programName:sub(0, #programName - 4)
 end
 
-local function printProgramStartupWithVersion(program_version)
-    local currentFileName = getCurrentFileName()
+local function printProgramStartupWithVersion(currentFileName, program_version)
     ---@diagnostic disable-next-line: undefined-field
     local currentComputerName = os.getComputerLabel()
     log("Starting " .. currentFileName .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
