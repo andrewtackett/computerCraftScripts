@@ -231,10 +231,7 @@ local function printProgramStartupWithVersion(program_version)
     local currentFileName = getCurrentFileName()
     ---@diagnostic disable-next-line: undefined-field
     local currentComputerName = os.getComputerLabel()
-    log("Starting " .. currentFileName .. 
-        " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"]
-        .. " on " .. currentComputerName
-    )
+    log("Starting " .. currentFileName .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
 end
 
 local function findLastOpenInventorySlot(inventory_size, items)

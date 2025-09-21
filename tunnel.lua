@@ -34,13 +34,12 @@ local torch_slot = 16
 local off_limits_slots = { [16] = true }
 local distance_between_torches = 6
 local tunnel_height = 8
-local items_to_compact_tags = "allthecompressed:1x"
 
 -- TODO
+-- local items_to_compact_tags = "allthecompressed:1x"
 -- local function compactItems()
 --     log("Compacting items", "info")
 -- end
-
 
 local function ensureInventorySpace()
     local function checkInventory()

@@ -5,6 +5,8 @@ local get_commands = args[1] or false
 
 common.updateAll(get_commands)
 
+-- pastebin get QgA4Vxi2 common.lua
+
 -- download from pastebin to local
 -- list latest robot version
 -- send as version +1
