@@ -15,7 +15,7 @@ local gps = gps
 local function goLeft(distance)
     distance = distance or 1
     turtle.turnLeft()
-    for i = 1, distance do
+    for _ = 1, distance do
         if not turtle.forward() then
             common.throwError("Failed to go left. Stopping...")
         end
@@ -26,7 +26,7 @@ end
 local function goRight(distance)
     distance = distance or 1
     turtle.turnRight()
-    for i = 1, distance do
+    for _ = 1, distance do
         if not turtle.forward() then
             common.throwError("Failed to go right. Stopping...")
         end
@@ -36,7 +36,7 @@ end
 
 local function goUp(distance)
     distance = distance or 1
-    for i = 1, distance do
+    for _ = 1, distance do
         if not turtle.up() then
             common.throwError("Failed to go up. Stopping...")
         end
@@ -45,7 +45,7 @@ end
 
 local function goDown(distance)
     distance = distance or 1
-    for i = 1, distance do
+    for _ = 1, distance do
         if not turtle.down() then
             common.throwError("Failed to go down. Stopping...")
         end
@@ -54,7 +54,7 @@ end
 
 local function goBack(distance)
     distance = distance or 1
-    for i = 1, distance do
+    for _ = 1, distance do
         if not turtle.back() then
             common.throwError("Failed to go back. Stopping...")
         end
@@ -63,7 +63,7 @@ end
 
 local function goForward(distance)
     distance = distance or 1
-    for i = 1, distance do
+    for _ = 1, distance do
         if not turtle.forward() then
             common.throwError("Failed to go forward. Stopping...")
         end
@@ -184,26 +184,48 @@ local function ensureFuel(min_fuel_level, fuel_item_name, fuel_slot, default_slo
 end
 
 local function determineWhichDirectionCurrentlyFacing()
-    local x, _y, z = gps.locate()
-    goForward(1)
-    local x2, _y2, z2 = gps.locate()
-    local xOffset = x2 - x
-    local zOffset = z2 - z
+    local x, _, z = gps.locate()
     local direction = ""
-    if xOffset ~= 0 then
-        if xOffset < 0 then
-            direction = "xNeg"
-        else
-            direction = "xPos"
+    if turtle.forward() then
+        local x2, _, z2 = gps.locate()
+        local xOffset = x2 - x
+        local zOffset = z2 - z
+        if xOffset ~= 0 then
+            if xOffset < 0 then
+                direction = "xNeg"
+            else
+                direction = "xPos"
+            end
+        elseif zOffset ~= 0 then
+            if zOffset < 0 then
+                direction = "zNeg"
+            else
+                direction = "zPos"
+            end
         end
-    elseif zOffset ~= 0 then
-        if zOffset < 0 then
-            direction = "zNeg"
-        else
-            direction = "zPos"
+        goBack(1)
+    elseif turtle.back() then
+        local x2, _, z2 = gps.locate()
+        local xOffset = x2 - x
+        local zOffset = z2 - z
+        if xOffset ~= 0 then
+            if xOffset > 0 then
+                direction = "xNeg"
+            else
+                direction = "xPos"
+            end
+        elseif zOffset ~= 0 then
+            if zOffset > 0 then
+                direction = "zNeg"
+            else
+                direction = "zPos"
+            end
         end
+        goForward(1)
+    else
+        common.throwError("Can't move forward or backward to determine direction")
     end
-    goBack(1)
+    
     return direction
 end
 
@@ -233,21 +255,15 @@ local function getNavigationFunctionsFromDirection(currentDirection)
     return goXPos, goXNeg, goZPos, goZNeg
 end
 
-local function coordinatesToInt(x, y, z)
-    return math.floor(x), math.floor(y), math.floor(z)
-end
-
 local function navigateToPoint(target_x, target_y, target_z)
-    target_x, target_y, target_z = coordinatesToInt(target_x, target_y, target_z)
     local current_x, current_y, current_z = gps.locate()
-    current_x, current_y, current_z = coordinatesToInt(current_x, current_y, current_z)
     local currentDirection = determineWhichDirectionCurrentlyFacing()
+    print("currentDirection " .. currentDirection)
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
 
     while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
-        local xOffset, yOffset, zOffset = coordinatesToInt(math.abs(target_x - current_x), 
-                                                           math.abs(target_y - current_y), 
-                                                           math.abs(target_z - current_z))
+        local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
+        print("offsets " .. xOffset "|" .. yOffset .. "|" .. zOffset)
 
         if current_x < target_x then
             goXPos(xOffset)
@@ -267,7 +283,6 @@ local function navigateToPoint(target_x, target_y, target_z)
             goZNeg(zOffset)
         end
         current_x, current_y, current_z = gps.locate()
-        current_x, current_y, current_z = coordinatesToInt(current_x, current_y, current_z)
     end
 end
 
@@ -276,6 +291,7 @@ local function navigateToStorage()
     local storageX = config["storageX"]
     local storageY = config["storageY"]
     local storageZ = config["storageZ"]
+    print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
     navigateToPoint(storageX, storageY, storageZ)
 end
 
