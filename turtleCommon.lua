@@ -321,7 +321,6 @@ return {
     ensureFuel = ensureFuel,
     determineWhichDirectionCurrentlyFacing = determineWhichDirectionCurrentlyFacing,
     getNavigationFunctionsFromDirection = getNavigationFunctionsFromDirection,
-    coordinatesToInt = coordinatesToInt,
     navigateToPoint = navigateToPoint,
     navigateToStorage = navigateToStorage,
     dumpInventory = dumpInventory,
