@@ -80,7 +80,7 @@ local function getMaxOffset()
     common.log("getMaxOffset: " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
     local offsetTable = { xOffset, yOffset, zOffset }
     table.sort(offsetTable)
-    common.log("getMaxOffset, offsetTable: " .. offsetTable)
+    common.log("getMaxOffset, offsetTable: " .. tostring(offsetTable[#offsetTable]))
     local maxOffset = offsetTable[#offsetTable]
     return maxOffset
 end
