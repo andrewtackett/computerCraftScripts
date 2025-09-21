@@ -17,7 +17,7 @@ local gps = gps
 
 local args = {...}
 if #args < 1 then
-    print("Usage: tunnel <lengthOfTunnel> [placeTorches]")
+    print("Usage: tunnel <lengthOfTunnel> [placeTorches] [tunnelHeight]")
     return
 end
 local config = common.readConfigFile()
@@ -36,13 +36,7 @@ common.log("test debug message","debug")
 local torch_slot = 16
 local off_limits_slots = { [16] = true }
 local distance_between_torches = 6
-local tunnel_height = 8
-
--- TODO
--- local items_to_compact_tags = "allthecompressed:1x"
--- local function compactItems()
---     log("Compacting items", "info")
--- end
+local tunnel_height = args[3] or tonumber(config["tunnelHeight"])
 
 local function navigateToStorage()
     common.log("Navigating to storage")
@@ -50,15 +44,14 @@ local function navigateToStorage()
     local storageY = tonumber(config["storageY"])
     local storageZ = tonumber(config["storageZ"])
     print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
-    turtleCommon.goLeft()
     turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
-    turtleCommon.goRight()
     print("Arrived at storage")
 end
 
 local function dumpInventory(default_slot, off_limits_slots)
     default_slot = default_slot or 1
     local currentX, currentY, currentZ = gps.locate()
+    turtleCommon.goLeft()
     navigateToStorage()
     print("pre turn right")
     turtle.turnRight()
@@ -68,6 +61,7 @@ local function dumpInventory(default_slot, off_limits_slots)
     turtle.turnLeft()
     print("post turn left")
     common.log("Returning to start")
+    turtleCommon.goLeft()
     turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
 end
 
@@ -186,13 +180,13 @@ local function digStep()
     placeTorch()
     digLeftAndRight()
 
-    for _=1, tunnel_height do
+    for _=1, (tunnel_height - 1) do
         digWithFallGuard("up")
         turtleCommon.goUp()
         digLeftAndRight()
     end
 
-    for _=1, tunnel_height do
+    for _=1, (tunnel_height - 1) do
         turtleCommon.goDown()
     end
 
