@@ -44,6 +44,33 @@ local tunnel_height = 8
 --     log("Compacting items", "info")
 -- end
 
+local function navigateToStorage()
+    common.log("Navigating to storage")
+    local storageX = tonumber(config["storageX"])
+    local storageY = tonumber(config["storageY"])
+    local storageZ = tonumber(config["storageZ"])
+    print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
+    turtleCommon.goLeft()
+    turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
+    turtleCommon.goRight()
+    print("Arrived at storage")
+end
+
+local function dumpInventory(default_slot, off_limits_slots)
+    default_slot = default_slot or 1
+    local currentX, currentY, currentZ = gps.locate()
+    navigateToStorage()
+    print("pre turn right")
+    turtle.turnRight()
+    print("post turn right")
+    turtleCommon.storeGoods(default_slot, off_limits_slots)
+    print("pre turn left")
+    turtle.turnLeft()
+    print("post turn left")
+    common.log("Returning to start")
+    turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
+end
+
 local function ensureInventorySpace()
     local function checkInventory()
         for i=1,16 do
@@ -55,7 +82,7 @@ local function ensureInventorySpace()
     end
     if not checkInventory() then
         common.log("No inventory space left!", "warning")
-        turtleCommon.dumpInventory(torch_slot, off_limits_slots, true)
+        dumpInventory(torch_slot, off_limits_slots)
         common.waitForFix(checkInventory, 30)
     end
 end
@@ -182,7 +209,7 @@ local function main()
         common.log("Digging: " .. i .. ", fuel left: " .. turtle.getFuelLevel(), "info")
         digStep()
     end
-    turtleCommon.dumpInventory(torch_slot, off_limits_slots, true)
+    turtleCommon.dumpInventory(torch_slot, off_limits_slots, true, navigateToStorage)
     common.log("Done digging tunnel")
 end
 

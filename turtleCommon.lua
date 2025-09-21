@@ -259,92 +259,52 @@ local function getNavigationFunctionsFromDirection(currentDirection)
 end
 
 local function navigateToPoint(target_x, target_y, target_z, y_first)
+    local current_x, current_y, current_z = gps.locate()
     y_first = y_first or true
     local currentDirection = determineWhichDirectionCurrentlyFacing()
     print("currentDirection " .. currentDirection)
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
-    local function navY(current_y, yOffset)
-        print("Doing Y dir")
-        if current_y < target_y then
-            goUp(yOffset)
-        elseif current_y > target_y then
-            goDown(yOffset)
-        end
-    end
 
-    local function navX(current_x, xOffset)
-        print("Doing x dir")
-        if current_x < target_x then
-            goXPos(xOffset)
-        elseif current_x > target_x then
-            goXNeg(xOffset)
-        end
-    end
-
-    local function navZ(current_z, zOffset)
-        print("Doing z dir")
-        if current_z < target_z then
-            goZPos(zOffset)
-        elseif current_z > target_z then
-            goZNeg(zOffset)
-        end
-    end
-
-    local current_x, current_y, current_z = gps.locate()
     while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
         local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
         print("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
 
         if y_first then
-            -- Move current direction axis last to avoid torches
-            if currentDirection == "xPos" or currentDirection == "xNeg" then
-                navY(current_y, yOffset)
-                navZ(current_z, zOffset)
-                navX(current_x, xOffset)
-            else
-                navY(current_y, yOffset)
-                navX(current_z, zOffset)
-                navZ(current_x, xOffset)
-            end
-        else
-            if currentDirection == "xPos" or currentDirection == "xNeg" then
-                navZ(current_z, zOffset)
-                navX(current_x, xOffset)
-                navY(current_y, yOffset)
-            else
-                navX(current_z, zOffset)
-                navZ(current_x, xOffset)
-                navY(current_y, yOffset)
+            print("Doing Y dir")
+            if current_y < target_y then
+                goUp(yOffset)
+            elseif current_y > target_y then
+                goDown(yOffset)
             end
         end
 
+        if currentDirection == "xPos" or currentDirection == "xNeg" then
+            print("Doing x dir")
+            if current_x < target_x then
+                goXPos(xOffset)
+            elseif current_x > target_x then
+                goXNeg(xOffset)
+            end
+
+            print("Doing z dir")
+            if current_z < target_z then
+                goZPos(zOffset)
+            elseif current_z > target_z then
+                goZNeg(zOffset)
+            end
+        end
+
+
+        if not y_first then
+            print("Doing Y dir")
+            if current_y < target_y then
+                goUp(yOffset)
+            elseif current_y > target_y then
+                goDown(yOffset)
+            end
+        end
         current_x, current_y, current_z = gps.locate()
     end
-end
-
-local function navigateToStorage(y_first)
-    common.log("Navigating to storage")
-    local storageX = tonumber(config["storageX"])
-    local storageY = tonumber(config["storageY"])
-    local storageZ = tonumber(config["storageZ"])
-    print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
-    navigateToPoint(storageX, storageY, storageZ, y_first)
-    print("Arrived at storage")
-end
-
-local function dumpInventory(default_slot, off_limits_slots, y_first)
-    default_slot = default_slot or 1
-    local currentX, currentY, currentZ = gps.locate()
-    navigateToStorage(y_first)
-    print("pre turn right")
-    turtle.turnRight()
-    print("post turn right")
-    storeGoods(default_slot, off_limits_slots)
-    print("pre turn left")
-    turtle.turnLeft()
-    print("post turn left")
-    common.log("Returning to start")
-    navigateToPoint(currentX, currentY, currentZ, y_first)
 end
 
 return {
@@ -366,6 +326,4 @@ return {
     determineWhichDirectionCurrentlyFacing = determineWhichDirectionCurrentlyFacing,
     getNavigationFunctionsFromDirection = getNavigationFunctionsFromDirection,
     navigateToPoint = navigateToPoint,
-    navigateToStorage = navigateToStorage,
-    dumpInventory = dumpInventory,
 }
