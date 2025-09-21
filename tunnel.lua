@@ -174,8 +174,9 @@ local function main()
     for i=0,lengthOfTunnel do
         common.log("Digging: " .. i .. ", fuel left: " .. turtle.getFuelLevel(), "info")
         digStep()
-        turtleCommon.dumpInventory(torch_slot, off_limits_slots, true)
     end
+    turtleCommon.dumpInventory(torch_slot, off_limits_slots, true)
+    common.log("Done digging tunnel")
 end
 
 main()
