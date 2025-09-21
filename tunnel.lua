@@ -5,6 +5,7 @@
 -- with a chest/inventory to the right of it for unloading items
 local version = { major=1, minor=0, patch=0 }
 local common = require("common")
+local turtleCommon = require("turtleCommon")
 
 local args = {...}
 if #args < 1 then
@@ -20,7 +21,6 @@ local config = common.readConfigFile("config.cfg")
 local storageX = config["storageX"]
 local storageY = config["storageY"]
 local storageZ = config["storageZ"]
-local loggingMode = config["loggingMode"] or args[5] or "normal" -- "normal", "verbose", "debug"
 
 local torch_slot = 16
 local distance_between_torches = 6
@@ -32,160 +32,36 @@ local items_to_compact_tags = "allthecompressed:1x"
 local turtle = turtle
 ---@diagnostic disable-next-line: undefined-global
 local sleep = sleep
----@diagnostic disable-next-line: undefined-global
-local term = term
----@diagnostic disable-next-line: undefined-global
-local colors = colors
 
-local info_color    = colors.lightBlue
-local warning_color = colors.orange
-local error_color   = colors.red
-local success_color = colors.green
-local verbose_color = colors.purple
-local debug_color   = colors.gray
-local default_color = colors.green
-
-
-local function throwError(msg)
-    term.setTextColor(error_color)
-    print(msg)
-    term.setTextColor(default_color)
-    error()
-end
-
+local loggingMode = config["loggingMode"] or args[5] or "normal"
 local function log(msg, level)
-    level = level or "info"
-    local color = info_color
-    if level == "warning" then
-        color = warning_color
-    elseif level == "error" then
-        color = error_color
-    elseif level == "success" then
-        color = success_color
-    elseif level == "verbose" then
-        color = verbose_color
-    elseif level == "debug" then
-        color = debug_color
-    end
-    -- Implicitly filter messages based on logging mode and color
-    if loggingMode == "normal" and (level == "debug" or level == "verbose") then
-        return
-    elseif loggingMode == "verbose" and level == "debug" then
-        return
-    end
-    term.setTextColor(color)
-    print(msg)
-    term.setTextColor(default_color)
-end
-
-local function goLeft(distance)
-    distance = distance or 1
-    turtle.turnLeft()
-    for i = 1, distance do
-        if not turtle.forward() then
-            throwError("Failed to go left. Stopping...")
-        end
-    end
-    turtle.turnRight()
-end
-
-local function goRight(distance)
-    distance = distance or 1
-    turtle.turnRight()
-    for i = 1, distance do
-        if not turtle.forward() then
-            throwError("Failed to go right. Stopping...")
-        end
-    end
-    turtle.turnLeft()
-end
-
-local function goUp(distance)
-    distance = distance or 1
-    for i = 1, distance do
-        if not turtle.up() then
-            throwError("Failed to go up. Stopping...")
-        end
-    end
-end
-
-local function goDown(distance)
-    distance = distance or 1
-    for i = 1, distance do
-        if not turtle.down() then
-            throwError("Failed to go down. Stopping...")
-        end
-    end
-end
-
-local function goBack(distance)
-    distance = distance or 1
-    for i = 1, distance do
-        if not turtle.back() then
-            throwError("Failed to go back. Stopping...")
-        end
-    end
-end
-
-local function goForward(distance)
-    distance = distance or 1
-    for i = 1, distance do
-        if not turtle.forward() then
-            throwError("Failed to go forward. Stopping...")
-        end
-    end
-end
-
-local function waitForFix(checkFunction)
-    while not checkFunction() do
-        sleep(30)
-    end
+    common.log(loggingMode, msg, level)
 end
 
 local function navigateFromTunnelStoppingPointToTunnelStart(steps_taken_forward, steps_taken_up)
     log("Navigating to tunnel start", "info")
-    goDown(steps_taken_up)
-    goLeft()
-    goBack(steps_taken_forward + tunnelStartOffset)
-    goRight()
+    turtleCommon.goDown(steps_taken_up)
+    turtleCommon.goLeft()
+    turtleCommon.goBack(steps_taken_forward + tunnelStartOffset)
+    turtleCommon.goRight()
 end
 
 local function navigateFromTunnelStartToTunnelStoppingPoint(steps_taken_forward, steps_taken_up)
     log("Navigating from tunnel start to stopping point", "info")
-    goLeft()
-    goForward(steps_taken_forward + tunnelStartOffset)
-    goRight()
-    goUp(steps_taken_up)
+    turtleCommon.goLeft()
+    turtleCommon.goForward(steps_taken_forward + tunnelStartOffset)
+    turtleCommon.goRight()
+    turtleCommon.goUp(steps_taken_up)
 end
 
 -- local function compactItems()
 --     log("Compacting items", "info")
 -- end
 
-local function storeGoods()
-    log("Storing goods", "info")
-    local function canDropItems()
-        return turtle.drop()
-    end
-    for i = 1, 16 do
-        turtle.select(i)
-        if i ~= torch_slot then
-            if(turtle.getItemCount() > 0) then
-                if not turtle.drop() then
-                    log("The storage is full. Stopping...", "error")
-                    waitForFix(canDropItems)
-                end
-            end
-        end
-    end
-    turtle.select(torch_slot)
-    log("Finished storing goods", "success")
-end
-
 local function dumpInventory(step_number)
     navigateFromTunnelStoppingPointToTunnelStart(step_number, 0)
     turtle.turnRight()
-    storeGoods()
+    turtleCommon.storeGoods()
     turtle.turnLeft()
     navigateFromTunnelStartToTunnelStoppingPoint(step_number, 0)
 end
@@ -202,7 +78,7 @@ local function ensureInventorySpace(step_number)
     if not checkInventory() then
         log("No inventory space left!", "warning")
         dumpInventory(step_number)
-        waitForFix(checkInventory)
+        common.waitForFix(checkInventory, 30)
     end
 end
 
@@ -213,7 +89,7 @@ local function ensureTorches()
     end
     if not checkTorches() then
         log("Out of torches!", "error")
-        waitForFix(checkTorches)
+        common.waitForFix(checkTorches, 30)
     end
 end
 
@@ -259,10 +135,10 @@ local function digLeftAndRight()
     turtle.turnLeft()
 end
 
+-- When falling blocks fall on the turtle they'll drop and then fall when it
+-- goes forward, so we'll turn back on each step and try to pick up any
+-- that fell off its back
 local function clearAboveFallingItemsFromLastStep()
-    -- When falling blocks fall on the turtle they'll drop and then fall when it
-    -- goes forward, so we'll turn back on each step and try to pick up any
-    -- that fell off its back
     turtle.turnRight()
     turtle.turnRight()
     turtle.suck()
@@ -280,19 +156,19 @@ local function digStep(step_number)
     -- ensureTorch()?
 
     digWithFallGuard()
-    goForward()
+    turtleCommon.goForward()
     clearAboveFallingItemsFromLastStep()
     placeTorch(step_number)
     digLeftAndRight()
 
     for _=0, tunnel_height do
         digWithFallGuard("up")
-        goUp()
+        turtleCommon.goUp()
         digLeftAndRight()
     end
 
     for _=0, tunnel_height do
-        goDown()
+        turtleCommon.goDown()
     end
 
     -- Make sure to clear out any blocks that fell while digging higher up

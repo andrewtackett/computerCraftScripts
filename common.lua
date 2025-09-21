@@ -1,6 +1,16 @@
 -- Common utility functions
 local version = { major=1, minor=0, patch=0 }
 
+
+-- TODO: add restocking fuel and torches
+-- TODO: add compressing deepslate and other common blocks into their x1/x2/x9 forms
+--        - have to have crafty turtle?
+-- TODO: see if we can collect xp
+-- Update tunnel (any) program wirelessly
+-- Make dumpGoods program
+-- Make normal commands files/updating easier
+
+
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
 local turtle = turtle
@@ -14,46 +24,8 @@ local colors = colors
 local fs = fs
 ---@diagnostic disable-next-line: undefined-global
 local shell = shell
-
-local commonPastebin = "QgA4Vxi2"
-local tunnelPastebin = "QwFw5crR"
-local treeFarmPastebin = "wTY6LrZY"
-
-local function upsertPastebinScript(pastebin_id, file_name)
-    local temp_file = "tmp_" .. file_name
-    local fileModule = require(file_name)
-    local newFileModule = require(temp_file)
-    if newFileModule.version.major >= fileModule.version.major or
-       newFileModule.version.minor >= fileModule.version.minor or
-       newFileModule.version.patch >= fileModule.version.patch then
-        print("Updating " .. file_name .. " from pastebin...")
-        fs.delete(file_name)
-        fs.move(temp_file, file_name)
-        print("Updated " .. file_name)
-        print("Old version: " .. fileModule.version.major .. "." .. fileModule.version.minor .. "." .. fileModule.version.patch)
-        print("New version: " .. newFileModule.version.major .. "." .. newFileModule.version.minor .. "." .. newFileModule.version.patch)
-    else
-        fs.delete(temp_file)
-        print(file_name .. " is up to date.")
-    end
-    shell.run("pastebin", "get", pastebin_id, file_name)
-end
-
-local function getCurrentFileName()
-    local fileWithPath = debug.getinfo(1, "S").source
-    local programName = fileWithPath:match("[^/]*.lua$")
-    return programName:sub(0, #programName - 4)
-end
-
-local function printProgramStartupWithVersion()
-    local currentFileName = getCurrentFileName()
----@diagnostic disable-next-line: undefined-field
-    local currentComputerName = os.getComputerLabel()
-    print("Starting " .. currentFileName .. 
-        " v" .. version["major"] .. "." .. version["minor"] .. "." .. version["patch"]
-        .. " on " .. currentComputerName
-    )
-end
+---@diagnostic disable-next-line: undefined-global
+local http = http
 
 -- Color codes reference:
 
@@ -85,59 +57,6 @@ local default_color = colors.green
 -- t = {[1]=true, [2]=true}
 -- t = { name = "minecraft:oak_log", state = { axis = "x" }, tags = { ["minecraft:logs"] = true }}
 -- t = { [1] = true, [2] = true }
-
-
--- TODO: add restocking fuel and torches
--- TODO: add compressing deepslate and other common blocks into their x1/x2/x9 forms
---        - have to have crafty turtle?
--- TODO: see if we can collect xp
--- Update tunnel (any) program wirelessly
--- Make dumpGoods program
-
-
-local function log(loggingMode, msg, level)
-    level = level or "info"
-    local color = info_color
-    if level == "warning" then
-        color = warning_color
-    elseif level == "error" then
-        color = error_color
-    elseif level == "success" then
-        color = success_color
-    elseif level == "verbose" then
-        color = verbose_color
-    elseif level == "debug" then
-        color = debug_color
-    end
-    -- Implicitly filter messages based on logging mode and color
-    if loggingMode == "normal" and (level == "debug" or level == "verbose") then
-        return
-    elseif loggingMode == "verbose" and level == "debug" then
-        return
-    end
-    term.setTextColor(color)
-    print(msg)
-    term.setTextColor(default_color)
-end
-
--- Example in local file to wrap:
--- local loggingMode = config["loggingMode"] or "normal"
--- local common = require("common")
--- local function log(msg, level)
---     common.log(loggingMode, msg, level)
--- end
-
-local function logWithOutputRecord(loggingMode, outputLog, msg, level)
-    log(loggingMode, msg, level)
-    -- TODO: write stuff to append to outputLog
-end
-
-local function throwError(msg)
-    term.setTextColor(colors.red)
-    print(msg)
-    term.setTextColor(colors.white)
-    error()
-end
 
 local function split(pString, pPattern)
    local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
@@ -171,16 +90,130 @@ local function readConfigFile(file_name)
     return config
 end
 
+local function log(msg, level, loggingMode)
+    local config = readConfigFile("config.cfg")
+    level = level or "info"
+    loggingMode = loggingMode or config["loggingMode"] or "normal"
+    local color = info_color
+    if level == "warning" then
+        color = warning_color
+    elseif level == "error" then
+        color = error_color
+    elseif level == "success" then
+        color = success_color
+    elseif level == "verbose" then
+        color = verbose_color
+    elseif level == "debug" then
+        color = debug_color
+    end
+    -- Implicitly filter messages based on logging mode and color
+    if loggingMode == "normal" and (level == "debug" or level == "verbose") then
+        return
+    elseif loggingMode == "verbose" and level == "debug" then
+        return
+    end
+    term.setTextColor(color)
+    print(msg)
+    term.setTextColor(default_color)
+end
+
+-- Example in local file to wrap:
+-- local loggingMode = config["loggingMode"] or "normal"
+-- local common = require("common")
+-- local function log(msg, level)
+--     common.log(msg, level, loggingMode)
+-- end
+
+-- TODO
+local function logWithOutputRecord(loggingMode, outputLog, msg, level)
+    log(msg, level, loggingMode)
+    -- TODO: write stuff to append to outputLog
+end
+
+local function throwError(msg)
+    term.setTextColor(error_color)
+    print(msg)
+    term.setTextColor(default_color)
+    error()
+end
+
 local function printWithColor(msg, color)
     term.setTextColor(color)
     print(msg)
     term.setTextColor(colors.white)
 end
 
-local function waitForFix(checkFunction)
-    while not checkFunction() do
-        sleep(5)
+local function waitForFix(check_function, wait_time)
+    wait_time = wait_time or 5
+    while not check_function() do
+        sleep(wait_time)
     end
+end
+
+local commonPastebin = "QgA4Vxi2"
+local tunnelPastebin = "QwFw5crR"
+local treeFarmPastebin = "wTY6LrZY"
+local function downloadPastebinFile(pastebin_name, destination)
+    local pastebin_id = commonPastebin
+    if pastebin_name == "tunnel" then
+        pastebin_id = tunnelPastebin
+    elseif pastebin_name == "treeFarm" then
+        pastebin_id = treeFarmPastebin
+    end
+    log("Downloading pastebin file " .. pastebin_name .. " to " .. destination)
+    shell.run("pastebin", "get", pastebin_id, destination)
+end
+
+-- https://raw.githubusercontent.com/andrewtackett/computerCraftScripts/main/common.lua
+local function downloadFileFromGithub(repo, file_path, destination)
+    local url = "https://raw.githubusercontent.com/" .. repo .. "/main/" .. file_path
+    log("Downloading " .. file_path .. " from " .. url)
+    local response = http.get(url)
+    if response then
+        local file = fs.open(destination, "w")
+        file.write(response.readAll())
+        file.close()
+        response.close()
+        log("Downloaded " .. file_path .. " to " .. destination)
+    else
+        throwError("Failed to download " .. file_path)
+    end
+end
+
+local function updateProgram(program_name)
+    downloadFileFromGithub("andrewtackett/computerCraftScripts", program_name, program_name)
+    local temp_file = "tmp_" .. program_name
+    local fileModule = require(program_name)
+    local newFileModule = require(temp_file)
+    if newFileModule.version.major >= fileModule.version.major or
+       newFileModule.version.minor >= fileModule.version.minor or
+       newFileModule.version.patch >= fileModule.version.patch then
+        log("Updating " .. program_name .. " from pastebin...")
+        fs.delete(program_name)
+        fs.move(temp_file, program_name)
+        log("Updated " .. program_name)
+        log("Old version: " .. fileModule.version.major .. "." .. fileModule.version.minor .. "." .. fileModule.version.patch)
+        log("New version: " .. newFileModule.version.major .. "." .. newFileModule.version.minor .. "." .. newFileModule.version.patch)
+    else
+        fs.delete(temp_file)
+        log(program_name .. " is up to date.")
+    end
+end
+
+local function getCurrentFileName()
+    local fileWithPath = debug.getinfo(1, "S").source
+    local programName = fileWithPath:match("[^/]*.lua$")
+    return programName:sub(0, #programName - 4)
+end
+
+local function printProgramStartupWithVersion()
+    local currentFileName = getCurrentFileName()
+---@diagnostic disable-next-line: undefined-field
+    local currentComputerName = os.getComputerLabel()
+    log("Starting " .. currentFileName .. 
+        " v" .. version["major"] .. "." .. version["minor"] .. "." .. version["patch"]
+        .. " on " .. currentComputerName
+    )
 end
 
 local function findLastOpenInventorySlot(inventory_size, items)
@@ -194,18 +227,20 @@ end
 
 return {
     version = version,
-    upsertPastebinScript = upsertPastebinScript,
-    getCurrentFileName = getCurrentFileName,
-    printProgramStartupWithVersion = printProgramStartupWithVersion,
+    split = split,
+    readConfigFile = readConfigFile,
     log = log,
     logWithOutputRecord = logWithOutputRecord,
     throwError = throwError,
-    split = split,
-    readConfigFile = readConfigFile,
     printWithColor = printWithColor,
     waitForFix = waitForFix,
-    findLastOpenInventorySlot = findLastOpenInventorySlot,
     commonPastebin = commonPastebin,
     tunnelPastebin = tunnelPastebin,
     treeFarmPastebin = treeFarmPastebin,
+    downloadPastebinFile = downloadPastebinFile,
+    downloadFileFromGithub = downloadFileFromGithub,
+    updateProgram = updateProgram,
+    getCurrentFileName = getCurrentFileName,
+    printProgramStartupWithVersion = printProgramStartupWithVersion,
+    findLastOpenInventorySlot = findLastOpenInventorySlot,
 }

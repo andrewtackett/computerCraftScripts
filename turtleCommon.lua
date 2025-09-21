@@ -2,13 +2,21 @@
 ---@diagnostic disable-next-line: undefined-global
 local turtle = turtle
 local version = { major=1, minor=0, patch=0 }
+local common = require("common")
+
+---@diagnostic disable-next-line: undefined-global
+local peripheral = peripheral
+---@diagnostic disable-next-line: undefined-global
+local sleep = sleep
+---@diagnostic disable-next-line: undefined-global
+local gps = gps
 
 local function goLeft(distance)
     distance = distance or 1
     turtle.turnLeft()
     for i = 1, distance do
         if not turtle.forward() then
-            throwError("Failed to go left. Stopping...")
+            common.throwError("Failed to go left. Stopping...")
         end
     end
     turtle.turnRight()
@@ -19,7 +27,7 @@ local function goRight(distance)
     turtle.turnRight()
     for i = 1, distance do
         if not turtle.forward() then
-            throwError("Failed to go right. Stopping...")
+            common.throwError("Failed to go right. Stopping...")
         end
     end
     turtle.turnLeft()
@@ -29,7 +37,7 @@ local function goUp(distance)
     distance = distance or 1
     for i = 1, distance do
         if not turtle.up() then
-            throwError("Failed to go up. Stopping...")
+            common.throwError("Failed to go up. Stopping...")
         end
     end
 end
@@ -38,7 +46,7 @@ local function goDown(distance)
     distance = distance or 1
     for i = 1, distance do
         if not turtle.down() then
-            throwError("Failed to go down. Stopping...")
+            common.throwError("Failed to go down. Stopping...")
         end
     end
 end
@@ -47,7 +55,7 @@ local function goBack(distance)
     distance = distance or 1
     for i = 1, distance do
         if not turtle.back() then
-            throwError("Failed to go back. Stopping...")
+            common.throwError("Failed to go back. Stopping...")
         end
     end
 end
@@ -56,20 +64,20 @@ local function goForward(distance)
     distance = distance or 1
     for i = 1, distance do
         if not turtle.forward() then
-            throwError("Failed to go forward. Stopping...")
+            common.throwError("Failed to go forward. Stopping...")
         end
     end
 end
 
 local function safeDig()
     if not turtle.dig() then
-        throwError("Failed to dig. Stopping...")
+        common.throwError("Failed to dig. Stopping...")
     end
 end
 
 local function safeDigUp()
     if not turtle.digUp() then
-        throwError("Failed to dig up. Stopping...")
+        common.throwError("Failed to dig up. Stopping...")
     end
 end
 
@@ -85,23 +93,27 @@ local function detectSapling()
     return isSapling
 end
 
-local function storeGoods(off_limits_slots)
-    print("Storing goods")
+local function storeGoods(default_slot, off_limits_slots)
+    common.log("Storing goods", "info")
+    local function canDropItems()
+        return turtle.drop()
+    end
     for i = 1, 16 do
         turtle.select(i)
         if not off_limits_slots[i] then
             if(turtle.getItemCount() > 0) then
                 if not turtle.drop() then
-                    throwError("The storage is full. Stopping...")
+                    common.log("The storage is full. Stopping...", "error")
+                    common.waitForFix(canDropItems, 30)
                 end
             end
         end
     end
-    turtle.select(sapling_slot)
+    turtle.select(default_slot)
 end
 
 local function restockItem(desired_item_name, needed_items)
-    printWithColor("Restocking " .. desired_item_name, colors.yellow)
+    common.log("Restocking " .. desired_item_name, "info")
     local needed_items_left = needed_items + 1 -- Get one extra to keep first slot occupied by fuel item
     local chest = peripheral.wrap("front")
     local items = chest.list()
@@ -115,14 +127,14 @@ local function restockItem(desired_item_name, needed_items)
 
             if i == 1 and item_name ~= desired_item_name then
                 print("Rearranging chest to move different item from slot 1 to the back")
-                local last_open_slot = findLastOpenInventorySlot(inventory_size, items)
+                local last_open_slot = common.findLastOpenInventorySlot(inventory_size, items)
                 chest.pushItems("front", 1, item_count, last_open_slot) -- Move non-fuel items to the back
                 items = chest.list() -- Refresh the item list
                 break
             end
             
             sleep(0.5)
-            printWithColor("->" .. item_name .. " " .. item_count, colors.gray)
+            common.log("->" .. item_name .. " " .. item_count, "debug")
 
             if item_name == desired_item_name then
                 print("Found desired item: ", i, item_name, item_count)
@@ -146,7 +158,7 @@ local function restockItem(desired_item_name, needed_items)
     turtle.select(sapling_slot)
 end
 
-local function ensureFuel()
+local function ensureFuel(min_fuel_level, fuel_item_name, fuel_slot, default_slot)
     if turtle.getFuelLevel() < min_fuel_level then
         local current_fuel = turtle.getFuelLevel()
         local needed_fuel = min_fuel_level - current_fuel
@@ -156,18 +168,64 @@ local function ensureFuel()
             print("Not enough fuel in fuel slot!")
             restockItem(fuel_item_name, needed_items)
             if turtle.getItemCount(fuel_slot) < needed_items then
-                throwError("Not enough fuel in storage!")
+                common.throwError("Not enough fuel in storage!")
             end
         end
         turtle.select(fuel_slot)
         turtle.refuel(needed_items)
-        turtle.select(sapling_slot)
+        turtle.select(default_slot)
         if turtle.getFuelLevel() < min_fuel_level then
-            throwError("Refuel failed!")
+            common.throwError("Refuel failed!")
+        end
+    end
+end
+
+local function navigateToPoint(target_x, target_y, target_z)
+    local x,y,z = gps.locate()
+    local current_pos = {x = x, y = y, z = z}
+    local target_pos = {x = target_x, y = target_y, z = target_z}
+
+    while current_pos.x ~= target_pos.x or current_pos.y ~= target_pos.y or current_pos.z ~= target_pos.z do
+        if current_pos.x < target_pos.x then
+            goRight()
+            current_pos.x = current_pos.x + 1
+        elseif current_pos.x > target_pos.x then
+            goLeft()
+            current_pos.x = current_pos.x - 1
+        end
+
+        if current_pos.y < target_pos.y then
+            goUp()
+            current_pos.y = current_pos.y + 1
+        elseif current_pos.y > target_pos.y then
+            goDown()
+            current_pos.y = current_pos.y - 1
+        end
+
+        if current_pos.z < target_pos.z then
+            goForward()
+            current_pos.z = current_pos.z + 1
+        elseif current_pos.z > target_pos.z then
+            goBack()
+            current_pos.z = current_pos.z - 1
         end
     end
 end
 
 return {
     version = version,
+    goLeft = goLeft,
+    goRight = goRight,
+    goUp = goUp,
+    goDown = goDown,
+    goForward = goForward,
+    goBack = goBack,
+    safeDig = safeDig,
+    safeDigUp = safeDigUp,
+    detectLog = detectLog,
+    detectSapling = detectSapling,
+    storeGoods = storeGoods,
+    restockItem = restockItem,
+    ensureFuel = ensureFuel,
+    navigateToPoint = navigateToPoint,
 }
