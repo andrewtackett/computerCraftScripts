@@ -53,7 +53,7 @@ local function ensureInventorySpace()
     end
     if not checkInventory() then
         common.log("No inventory space left!", "warning")
-        turtleCommon.dumpInventory(torch_slot, off_limits_slots)
+        turtleCommon.dumpInventory(torch_slot, off_limits_slots, true)
         common.waitForFix(checkInventory, 30)
     end
 end
@@ -152,13 +152,13 @@ local function digStep()
     placeTorch()
     digLeftAndRight()
 
-    for _=0, tunnel_height do
+    for _=1, tunnel_height do
         digWithFallGuard("up")
         turtleCommon.goUp()
         digLeftAndRight()
     end
 
-    for _=0, tunnel_height do
+    for _=1, tunnel_height do
         turtleCommon.goDown()
     end
 
@@ -174,7 +174,7 @@ local function main()
     for i=0,lengthOfTunnel do
         common.log("Digging: " .. i .. ", fuel left: " .. turtle.getFuelLevel(), "info")
         digStep()
-        turtleCommon.dumpInventory(torch_slot, off_limits_slots)
+        turtleCommon.dumpInventory(torch_slot, off_limits_slots, true)
     end
 end
 

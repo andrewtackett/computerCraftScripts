@@ -229,15 +229,6 @@ local function printProgramStartupWithVersion(program_name, program_version)
     log("Starting " .. program_name .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
 end
 
-local function findLastOpenInventorySlot(inventory_size, items)
-    for i = inventory_size, 2, -1 do
-        if items[i] == nil then
-            return i
-        end
-    end
-    throwError("No space to rearrange fuel/items in chest!")
-end
-
 return {
     version = version,
     split = split,
@@ -252,5 +243,4 @@ return {
     upsertProgram = upsertProgram,
     updateAll = updateAll,
     printProgramStartupWithVersion = printProgramStartupWithVersion,
-    findLastOpenInventorySlot = findLastOpenInventorySlot,
 }

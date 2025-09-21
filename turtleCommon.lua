@@ -94,6 +94,15 @@ local function detectSapling()
     return isSapling
 end
 
+local function findLastOpenInventorySlot(inventory_size, items)
+    for i = inventory_size, 2, -1 do
+        if items[i] == nil then
+            return i
+        end
+    end
+    common.throwError("No space to rearrange fuel/items in chest!")
+end
+
 local function storeGoods(default_slot, off_limits_slots)
     common.log("Storing goods", "info")
     local function canDropItems()
@@ -113,14 +122,13 @@ local function storeGoods(default_slot, off_limits_slots)
     turtle.select(default_slot)
 end
 
--- TODO: convert
-local function restockItem(desired_item_name, needed_items)
+local function restockItem(desired_item_name, needed_items, slot_to_suck_into, default_slot)
     common.log("Restocking " .. desired_item_name, "info")
     local needed_items_left = needed_items + 1 -- Get one extra to keep first slot occupied by fuel item
     local chest = peripheral.wrap("front")
     local items = chest.list()
     local inventory_size = chest.size()
-    print("Items in chest:")
+    common.log("Items in chest:", "debug")
 
     for i = 1, inventory_size do
         if items[i] ~= nil then
@@ -128,18 +136,17 @@ local function restockItem(desired_item_name, needed_items)
             local item_count = items[i].count
 
             if i == 1 and item_name ~= desired_item_name then
-                print("Rearranging chest to move different item from slot 1 to the back")
-                local last_open_slot = common.findLastOpenInventorySlot(inventory_size, items)
+                common.log("Rearranging chest to move different item from slot 1 to the back")
+                local last_open_slot = findLastOpenInventorySlot(inventory_size, items)
                 chest.pushItems("front", 1, item_count, last_open_slot) -- Move non-fuel items to the back
                 items = chest.list() -- Refresh the item list
                 break
             end
-            
-            sleep(0.5)
+
             common.log("->" .. item_name .. " " .. item_count, "debug")
 
             if item_name == desired_item_name then
-                print("Found desired item: ", i, item_name, item_count)
+                common.log("Found desired item: " .. i .. item_name .. item_count, "debug")
                 if item_count >= needed_items_left then
                     chest.pullItems("front",i,needed_items_left)
                     needed_items_left = 0
@@ -151,13 +158,9 @@ local function restockItem(desired_item_name, needed_items)
             end
         end
     end
-    local slot_to_suck_into = fuel_slot
-    if desired_item_name == sapling_item_name then
-        slot_to_suck_into = sapling_slot
-    end
     turtle.select(slot_to_suck_into)
     turtle.suck(turtle.getItemSpace())
-    turtle.select(sapling_slot)
+    turtle.select(default_slot)
 end
 
 -- TODO: convert
@@ -255,8 +258,9 @@ local function getNavigationFunctionsFromDirection(currentDirection)
     return goXPos, goXNeg, goZPos, goZNeg
 end
 
-local function navigateToPoint(target_x, target_y, target_z)
+local function navigateToPoint(target_x, target_y, target_z, y_first)
     local current_x, current_y, current_z = gps.locate()
+    y_first = y_first or true
     local currentDirection = determineWhichDirectionCurrentlyFacing()
     print("currentDirection " .. currentDirection)
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
@@ -265,41 +269,55 @@ local function navigateToPoint(target_x, target_y, target_z)
         local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
         print("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset)
 
+        if y_first then
+            print("Doing Y dir")
+            if current_y < target_y then
+                goUp(yOffset)
+            elseif current_y > target_y then
+                goDown(yOffset)
+            end
+        end
+
+        print("Doing x dir")
         if current_x < target_x then
             goXPos(xOffset)
         elseif current_x > target_x then
             goXNeg(xOffset)
         end
 
-        if current_y < target_y then
-            goUp(yOffset)
-        elseif current_y > target_y then
-            goDown(yOffset)
-        end
-
+        print("Doing z dir")
         if current_z < target_z then
             goZPos(zOffset)
         elseif current_z > target_z then
             goZNeg(zOffset)
         end
+
+        if not y_first then
+            print("Doing Y dir")
+            if current_y < target_y then
+                goUp(yOffset)
+            elseif current_y > target_y then
+                goDown(yOffset)
+            end
+        end
         current_x, current_y, current_z = gps.locate()
     end
 end
 
-local function navigateToStorage()
+local function navigateToStorage(y_first)
     common.log("Navigating to storage")
     local storageX = tonumber(config["storageX"])
     local storageY = tonumber(config["storageY"])
     local storageZ = tonumber(config["storageZ"])
     print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
-    navigateToPoint(storageX, storageY, storageZ)
+    navigateToPoint(storageX, storageY, storageZ, y_first)
     print("Arrived at storage")
 end
 
-local function dumpInventory(default_slot, off_limits_slots)
+local function dumpInventory(default_slot, off_limits_slots, y_first)
     default_slot = default_slot or 1
     local currentX, currentY, currentZ = gps.locate()
-    navigateToStorage()
+    navigateToStorage(y_first)
     print("pre turn right")
     turtle.turnRight()
     print("post turn right")
@@ -308,7 +326,7 @@ local function dumpInventory(default_slot, off_limits_slots)
     turtle.turnLeft()
     print("post turn left")
     common.log("Returning to start")
-    navigateToPoint(currentX, currentY, currentZ)
+    navigateToPoint(currentX, currentY, currentZ, y_first)
 end
 
 return {
@@ -323,6 +341,7 @@ return {
     safeDigUp = safeDigUp,
     detectLog = detectLog,
     detectSapling = detectSapling,
+    findLastOpenInventorySlot = findLastOpenInventorySlot,
     storeGoods = storeGoods,
     restockItem = restockItem,
     ensureFuel = ensureFuel,
