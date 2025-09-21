@@ -288,9 +288,9 @@ end
 
 local function navigateToStorage()
     common.log("Navigating to storage")
-    local storageX = config["storageX"]
-    local storageY = config["storageY"]
-    local storageZ = config["storageZ"]
+    local storageX = tonumber(config["storageX"])
+    local storageY = tonumber(config["storageY"])
+    local storageZ = tonumber(config["storageZ"])
     print("debug: " .. storageX .. "|" .. storageY .. "|" .. storageZ)
     navigateToPoint(storageX, storageY, storageZ)
 end

@@ -24,10 +24,11 @@ local config = common.readConfigFile()
 local lengthOfTunnel = args[1]
 local placeTorches = args[2] == "true" or false
 
+local storageX = tonumber(config["storageX"])
+local storageY = tonumber(config["storageY"])
+local storageZ = tonumber(config["storageZ"])
+
 local startX, startY, startZ = gps.locate()
-local storageX = config["storageX"] or startX
-local storageY = config["storageY"] or startY
-local storageZ = config["storageZ"] or startZ
 print("Debugging, start coords: ", startX, startY, startZ)
 
 local torch_slot = 16

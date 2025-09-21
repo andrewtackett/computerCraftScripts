@@ -212,7 +212,8 @@ local function updateAll(get_commands)
             [10] = "tright.lua",
             [11] = "up.lua",
             [12] = "update.lua",
-            [13] = "coordinates.lua"
+            [13] = "updateAll.lua",
+            [14] = "coordinates.lua"
         }
         for i=1,11 do
             log("Update all commands: " .. commands[i])
