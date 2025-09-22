@@ -1,20 +1,6 @@
 -- Common utility functions
 local version = { major=1, minor=0, patch=0 }
 
-
--- TODO: add restocking fuel and torches
--- TODO: add compressing deepslate and other common blocks into their x1/x2/x9 forms
---        - have to have crafty turtle?
--- TODO: see if we can collect xp
--- Update tunnel (any) program wirelessly
--- Make dumpGoods program
--- Make normal commands files/updating easier
--- figure out startup files not working
--- what happens if you update running software?
--- should mining program reboot itself?
--- should all software have a "listen for updates" loop?
-
-
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
 local turtle = turtle
@@ -111,10 +97,10 @@ local function log(msg, level, loggingMode)
     elseif level == "debug" then
         color = debug_color
     end
-    -- Implicitly filter messages based on logging mode and color
+
     if loggingMode == "normal" and (level == "debug" or level == "verbose") then
         return
-    elseif loggingMode == "verbose" and level == "debug" then
+    elseif loggingMode == "debug" and level == "verbose" then
         return
     end
     term.setTextColor(color)

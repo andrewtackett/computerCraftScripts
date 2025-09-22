@@ -96,6 +96,7 @@ end
 
 local function findLastOpenInventorySlot(inventory_size, items)
     for i = inventory_size, 2, -1 do
+        common.log("findLastOpenInventorySlot: " .. inventory_size .. ", " .. items[i] .. ", " .. i, "verbose")
         if items[i] == nil then
             return i
         end
@@ -122,10 +123,10 @@ local function storeGoods(default_slot, off_limits_slots)
     turtle.select(default_slot)
 end
 
-local function restockItem(desired_item_name, needed_items, slot_to_suck_into, default_slot)
+local function restockItem(desired_item_name, needed_items, slot_to_suck_into, default_slot, inventory_direction)
     common.log("Restocking " .. desired_item_name, "info")
     local needed_items_left = needed_items
-    local chest = peripheral.wrap("front")
+    local chest = peripheral.wrap(inventory_direction)
     local items = chest.list()
     local inventory_size = chest.size()
     common.log("Items in chest:", "debug")
@@ -134,12 +135,15 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
         if items[i] ~= nil then
             local item_name = items[i].name
             local item_count = items[i].count
+            common.log("restock test: " .. i .. ", name: " .. item_name .. ", count: " .. item_count)
 
             if i == 1 and item_name ~= desired_item_name then
                 common.log("Rearranging chest to move different item from slot 1 to the back")
                 local last_open_slot = findLastOpenInventorySlot(inventory_size, items)
+                common.log(i .. " - last_open_slot: " .. last_open_slot, "debug")
                 chest.pushItems("front", 1, item_count, last_open_slot) -- Move non-fuel items to the back
                 items = chest.list() -- Refresh the item list
+                common.log("items: " .. items, "debug")
                 break
             end
 
@@ -148,11 +152,11 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
             if item_name == desired_item_name then
                 common.log("Found desired item: " .. i .. item_name .. item_count, "debug")
                 if item_count >= needed_items_left then
-                    chest.pullItems("front",i,needed_items_left)
+                    chest.pullItems("front", i, needed_items_left, 1)
                     needed_items_left = 0
                     break
                 else
-                    chest.pullItems("front",i,item_count)
+                    chest.pullItems("front", i, item_count, 1)
                     needed_items_left = needed_items_left - item_count
                 end
             end
@@ -261,7 +265,7 @@ end
 local function navigateToPoint(target_x, target_y, target_z, y_first)
     local current_x, current_y, current_z = gps.locate()
     local currentDirection = determineWhichDirectionCurrentlyFacing()
-    common.log("currentDirection " .. currentDirection)
+    common.log("currentDirection " .. currentDirection, "debug")
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
 
     while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do

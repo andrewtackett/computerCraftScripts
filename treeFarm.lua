@@ -34,6 +34,7 @@ local row_length = 5
 
 local fuel_item_name = "minecraft:spruce_log"
 local sapling_item_name = "minecraft:spruce_sapling"
+local fuel_item_value = 15
 
 local function harvestTree()
     common.printWithColor("Harvesting tree", colors.green)
@@ -55,17 +56,17 @@ local function harvestTree()
 end
 
 local function ensureFuel()
-    local function storageHasEnoughFuel()
-        return turtle.getFuelLevel() < min_fuel_level
+    local function hasEnoughFuel()
+        return turtle.getFuelLevel() > min_fuel_level
     end
-    if storageHasEnoughFuel() then
+    if not hasEnoughFuel() then
         local current_fuel = turtle.getFuelLevel()
         local needed_fuel = min_fuel_level - current_fuel
-        local needed_items = math.ceil(needed_fuel / 15)
+        local needed_items = math.ceil(needed_fuel / fuel_item_value)
         common.log("Refueling from " .. current_fuel .. " to " .. min_fuel_level .. ", need " .. needed_items .. " items")
         if turtle.getItemCount(fuel_slot) < needed_items then
             common.log("Not enough fuel in fuel slot!","warning")
-            turtleCommon.restockItem(fuel_item_name, needed_items, fuel_slot, sapling_slot)
+            turtleCommon.restockItem(fuel_item_name, needed_items, fuel_slot, sapling_slot, "front")
             if turtle.getItemCount(fuel_slot) < needed_items then
                 common.throwError("Not enough fuel in storage!")
             end
@@ -73,9 +74,8 @@ local function ensureFuel()
         turtle.select(fuel_slot)
         turtle.refuel(needed_items)
         turtle.select(sapling_slot)
-        if storageHasEnoughFuel() then
-            common.log("Refuel failed!","error")
-            common.waitForFix(storageHasEnoughFuel, 30)
+        if not hasEnoughFuel() then
+            common.throwError("Refuel failed!")
         end
     end
 end
@@ -86,7 +86,7 @@ local function ensureSaplings()
     end
     if storageHasEnoughSaplings() then
         common.log("Restocking Saplings")
-        turtleCommon.restockItem(sapling_item_name, row_length, sapling_slot, sapling_slot)
+        turtleCommon.restockItem(sapling_item_name, row_length, sapling_slot, sapling_slot, "front")
         if storageHasEnoughSaplings() then
             common.log("Not enough saplings in storage! Need at least " .. (row_length + 1) .. " saplings.","error")
             common.waitForFix(storageHasEnoughSaplings, 30)
@@ -105,7 +105,7 @@ local function navigateToChestFromRowStart()
 end
 
 local function navigateToRowStartFromEnd()
-    common.log("Navigating to row start from end of row, distance " .. row_length)
+    common.log("Navigating to row start from end")
     for i = 1, row_length do
         turtleCommon.goRight(1)
         turtle.suck() -- Grab any saplings on the way back
