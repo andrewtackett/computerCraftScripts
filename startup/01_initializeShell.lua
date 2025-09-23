@@ -1,0 +1,1 @@
+shell.run("alias", "c", "/.mbs/bin/clear.lua")

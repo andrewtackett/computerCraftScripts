@@ -4,7 +4,6 @@
 - see if we can collect xp
 - Update tunnel (any) programs wirelessly
 - Make dumpGoods command
-- Make save storage coordinates from current command
 - figure out startup files not working
 - what happens if you update running software?
 - should mining program reboot itself?
@@ -14,6 +13,10 @@
 - Expand tree farm to multiple rows/more output
 
 # Projects
-- Wither bone farm
-- XP farm
 - Mob farms with spawners
+ - Zombie
+ - Spider
+ - Creeper
+ - Cow
+ - Wither?
+ - End Dragon?

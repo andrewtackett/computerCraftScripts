@@ -1,5 +1,7 @@
 -- Common utility functions
 local version = { major=1, minor=0, patch=0 }
+local args = {...}
+local should_bootstrap = args[1] == "true" or false
 
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
@@ -79,6 +81,16 @@ local function readConfigFile(file_name)
     end
     file.close()
     return config
+end
+
+local function writeConfigFile(config, file_name)
+    file_name = file_name or "config.cfg"
+    local file = fs.open(file_name, "w+")
+    for setting, value in pairs(config) do
+        local line = setting .. ":" .. value
+        file.writeLine(line)
+    end
+    file.close()
 end
 
 local function log(msg, level, loggingMode)
@@ -167,7 +179,7 @@ local function downloadFileFromGithub(repo, file_path, destination)
     end
 end
 
-local function upsertProgram(filename_or_path, destination)
+local function upsertFile(filename_or_path, destination)
     destination = destination or filename_or_path
     local temp_file = "tmp_" .. destination
     downloadFileFromGithub("andrewtackett/computerCraftScripts", filename_or_path, temp_file)
@@ -176,18 +188,19 @@ local function upsertProgram(filename_or_path, destination)
     log("Installed " .. destination)
 end
 
-local function updateAll(get_commands)
+local function upsertAll(get_commands)
     get_commands = get_commands or false
     local programs = { 
         [1] = "treeFarm.lua",
         [2] = "tunnel.lua",
         [3] = "turtleCommon.lua",
         [4] = "common.lua",
-        [5] = "attack.lua"
+        [5] = "attack.lua",
+        [6] = "mbs.lua",
     }
-    for i=1,4 do
-        log("Update all: " .. programs[i])
-        upsertProgram(programs[i])
+    for i=1,#programs do
+        log("Upsert all: " .. programs[i])
+        upsertFile(programs[i])
         sleep(1)
     end
     if get_commands then
@@ -204,21 +217,33 @@ local function updateAll(get_commands)
             [9] =  "tleft.lua",
             [10] = "tright.lua",
             [11] = "up.lua",
-            [12] = "update.lua",
-            [13] = "updateAll.lua",
+            [12] = "upsert.lua",
+            [13] = "upsertAll.lua",
         }
         for i=1,#commands do
             log("Update all commands: " .. commands[i])
-            upsertProgram("commands/" .. commands[i], commands[i])
+            upsertFile("commands/" .. commands[i], commands[i])
             sleep(1)
         end
     end
+end
+
+local function bootstrap()
+    upsertAll(true)
+    upsertFile("config.cfg")
+    shell.run("mbs.lua", "install")
+    upsertFile("startup/01_initializeShell.lua","startup/01_initializeShell.lua")
+    upsertFile("startup/02_runStartupProgram.lua","startup/02_runStartupProgram.lua")
 end
 
 local function printProgramStartupWithVersion(program_name, program_version)
     ---@diagnostic disable-next-line: undefined-field
     local currentComputerName = os.getComputerLabel()
     log("Starting " .. program_name .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
+end
+
+if should_bootstrap then
+    bootstrap()
 end
 
 return {
@@ -232,7 +257,7 @@ return {
     waitForFix = waitForFix,
     downloadPastebinFile = downloadPastebinFile,
     downloadFileFromGithub = downloadFileFromGithub,
-    upsertProgram = upsertProgram,
-    updateAll = updateAll,
+    upsertFile = upsertFile,
+    upsertAll = upsertAll,
     printProgramStartupWithVersion = printProgramStartupWithVersion,
 }
