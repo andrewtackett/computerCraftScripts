@@ -96,7 +96,7 @@ end
 
 local function findLastOpenInventorySlot(inventory_size, items)
     for i = inventory_size, 2, -1 do
-        common.log("findLastOpenInventorySlot: " .. inventory_size .. ", " .. items[i] .. ", " .. i .. "verbose")
+        common.log("findLastOpenInventorySlot: " .. inventory_size .. ", " .. items[i].name .. ", " .. i, "verbose")
         if items[i] == nil then
             return i
         end
