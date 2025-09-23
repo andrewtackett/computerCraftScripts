@@ -1,3 +1,6 @@
+---@diagnostic disable-next-line: undefined-global
+local turtle = turtle
+
 print("Starting Attack")
 while true do
     for _=1,100 do

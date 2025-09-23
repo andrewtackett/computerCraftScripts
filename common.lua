@@ -80,12 +80,14 @@ local function readConfigFile(file_name)
         line = file.readLine()
     end
     file.close()
+    table.sort(config)
     return config
 end
 
 local function writeConfigFile(config, file_name)
     file_name = file_name or "config.cfg"
     local file = fs.open(file_name, "w+")
+    table.sort(config)
     for setting, value in pairs(config) do
         local line = setting .. ":" .. value
         file.writeLine(line)
