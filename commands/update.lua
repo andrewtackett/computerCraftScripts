@@ -8,6 +8,7 @@ print("Updating: " .. program_path .. " - " .. program_to_update)
 common.upsertProgram(program_path, program_to_update)
 
 -- pastebin get QgA4Vxi2 common.lua
+-- wget https://raw.githubusercontent.com/SquidDev-CC/mbs/master/mbs.lua mbs.lua
 
 -- download from pastebin to local
 -- list latest robot version

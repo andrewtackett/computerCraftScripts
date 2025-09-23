@@ -182,7 +182,8 @@ local function updateAll(get_commands)
         [1] = "treeFarm.lua",
         [2] = "tunnel.lua",
         [3] = "turtleCommon.lua",
-        [4] = "common.lua"
+        [4] = "common.lua",
+        [5] = "attack.lua"
     }
     for i=1,4 do
         log("Update all: " .. programs[i])
