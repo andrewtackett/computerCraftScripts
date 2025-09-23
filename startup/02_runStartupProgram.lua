@@ -1,5 +1,5 @@
 ---@diagnostic disable-next-line: undefined-field
-local computerId = os.getComputerId()
+local computerId = os.getComputerID()
 local programDirectory = {
     [6] = "attack",
     [7] = "attack",

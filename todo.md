@@ -11,6 +11,7 @@
 - Make function to store item in inventory first look for existing to stack
 - Debug tree farm breaking on fueling
 - Expand tree farm to multiple rows/more output
+- Storatge dumping coordination between tunnel bots
 
 # Projects
 - Mob farms with spawners
