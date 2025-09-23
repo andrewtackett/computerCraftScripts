@@ -11,6 +11,7 @@
 - should all software have a "listen for updates" loop?
 - Make function to store item in inventory first look for existing to stack
 - Debug tree farm breaking on fueling
+- Expand tree farm to multiple rows/more output
 
 # Projects
 - Wither bone farm

@@ -206,7 +206,7 @@ local function updateAll(get_commands)
             [12] = "update.lua",
             [13] = "updateAll.lua",
         }
-        for i=1,11 do
+        for i=1,#commands do
             log("Update all commands: " .. commands[i])
             upsertProgram("commands/" .. commands[i], commands[i])
             sleep(1)
