@@ -214,6 +214,7 @@ local function upsertAll(get_commands)
             [6] =  "refuel.lua",
             [7] =  "right.lua",
             [8] =  "select.lua",
+            [15] = "setStorageLocation.lua",
             [9] =  "tleft.lua",
             [10] = "tright.lua",
             [11] = "up.lua",
@@ -229,8 +230,8 @@ local function upsertAll(get_commands)
 end
 
 local function bootstrap()
-    upsertAll(true)
     upsertFile("config.cfg")
+    upsertAll(true)
     shell.run("mbs.lua", "install")
     upsertFile("startup/01_initializeShell.lua","startup/01_initializeShell.lua")
     upsertFile("startup/02_runStartupProgram.lua","startup/02_runStartupProgram.lua")
@@ -250,6 +251,7 @@ return {
     version = version,
     split = split,
     readConfigFile = readConfigFile,
+    writeConfigFile = writeConfigFile,
     log = log,
     logWithOutputRecord = logWithOutputRecord,
     throwError = throwError,
