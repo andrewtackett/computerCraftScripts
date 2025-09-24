@@ -72,15 +72,17 @@ end
 local function readConfigFile(file_name)
     file_name = file_name or "config.cfg"
     local config = {}
-    local file = fs.open(file_name, "r")
-    local line = file.readLine()
-    while line do
-        local pair = split(line,":")
-        config[pair[1]] = pair[2]
-        line = file.readLine()
+    if fs.exists(file_name) then
+        local file = fs.open(file_name, "r")
+        local line = file.readLine()
+        while line do
+            local pair = split(line,":")
+            config[pair[1]] = pair[2]
+            line = file.readLine()
+        end
+        file.close()
+        table.sort(config)
     end
-    file.close()
-    table.sort(config)
     return config
 end
 
