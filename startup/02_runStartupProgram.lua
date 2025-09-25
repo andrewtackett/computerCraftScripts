@@ -3,6 +3,7 @@ local computerId = os.getComputerID()
 local programDirectory = {
     [6] = "attack",
     [7] = "attack",
+    [8] = "attack",
     [1] = "treeFarm"
 }
 local programToRun = programDirectory[computerId]
