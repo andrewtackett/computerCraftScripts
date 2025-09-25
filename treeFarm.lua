@@ -30,7 +30,8 @@ local sapling_slot = 1
 local fuel_slot = 16
 local off_limits_slots = { [sapling_slot] = true, [fuel_slot] = true }
 
-local row_length = 5
+local row_length = 13
+local num_rows = 3
 
 local fuel_item_name = "minecraft:spruce_log"
 local sapling_item_name = "minecraft:spruce_sapling"
@@ -82,7 +83,7 @@ end
 
 local function ensureSaplings()
     local function storageHasEnoughSaplings()
-        return turtle.getItemCount(sapling_slot) <= row_length
+        return turtle.getItemCount(sapling_slot) <= (row_length * num_rows) + 1
     end
     if storageHasEnoughSaplings() then
         common.log("Restocking Saplings")
@@ -94,30 +95,59 @@ local function ensureSaplings()
     end
 end
 
-local function navigateToRowStartFromChest()
+local function navigateToTreeStartFromChest()
     common.log("Navigating to row start from chest")
     turtleCommon.navigateToPoint(treeStartX, treeStartY, treeStartZ, true)
 end
 
-local function navigateToChestFromRowStart()
+local function navigateToChestFromTreeStart()
     common.log("Navigating to chest from row start")
     turtleCommon.navigateToPoint(storageX, storageY, storageZ, false)
 end
 
-local function navigateToRowStartFromEnd()
-    common.log("Navigating to row start from end")
-    for i = 1, row_length do
+local function navigateToNextRow(goLeft, goBack)
+    common.log("Navigating to next row, goLeft: " .. tostring(goLeft) .. ", goBack: " .. tostring(goBack))
+    if goLeft then
+        turtleCommon.goLeft(1)
+        if goBack then
+            turtleCommon.goBack(2)
+        else
+            turtleCommon.goForward(2)
+        end
         turtleCommon.goRight(1)
-        turtle.suck() -- Grab any saplings on the way back
+    else
+        turtleCommon.goRight(1)
+        if goBack then
+            turtleCommon.goBack(2)
+        else
+            turtleCommon.goForward(2)
+        end
+        turtleCommon.goLeft(1)
     end
-    -- Get row end
-    turtleCommon.goRight(1)
-    turtle.suck()
 end
 
-local function patrolRow()
+local function cleanUpDropsOnTreeBases()
+    common.log("Cleaning up drops on row")
+    local goLeft
+    for i = 1, num_rows do
+        goLeft = (i % 2 == 1)
+        for _ = 1, (row_length - 1) do
+            turtle.suck() -- Grab any saplings on the way back
+            if goLeft then
+                turtleCommon.goLeft(1)
+            else
+                turtleCommon.goRight(1)
+            end
+        end
+        if i < num_rows then
+            navigateToNextRow(goLeft, true)
+        end
+    end
+end
+
+local function patrolRow(goLeft)
     common.log("Patrolling row of length " .. row_length)
-    for i = 1, row_length do
+    for i = 1, (row_length - 1) do
         if not turtleCommon.detectSapling() and not turtleCommon.detectLog() then
             common.log("No sapling at " .. i .. ", planting new tree")
             turtle.select(sapling_slot)
@@ -126,10 +156,24 @@ local function patrolRow()
             common.log("Tree detected at " .. i .. ", harvesting")
             harvestTree()
         end
-        turtleCommon.goLeft(1)
+        if goLeft then
+            turtleCommon.goLeft(1)
+        else
+            turtleCommon.goRight(1)
+        end
     end
+end
 
-    navigateToRowStartFromEnd()
+local function patrolRows()
+    local goLeft
+    for i = 1, num_rows do
+        goLeft = (i % 2 == 1)
+        patrolRow(goLeft)
+        if i < num_rows then
+            navigateToNextRow(goLeft, false)
+        end
+    end
+    cleanUpDropsOnTreeBases()
 end
 
 local function printLoopStatus()
@@ -152,12 +196,12 @@ local function main()
             end
             common.log("Tree not detected at start, waiting for it to grow for efficiency")
         else
-            patrolRow()
-            navigateToChestFromRowStart()
+            patrolRows()
+            navigateToChestFromTreeStart()
             turtleCommon.storeGoods(sapling_slot, off_limits_slots)
             ensureSaplings()
             ensureFuel()
-            navigateToRowStartFromChest()
+            navigateToTreeStartFromChest()
         end
 
         sleep(wait_time_between_checks)

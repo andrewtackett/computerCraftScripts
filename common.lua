@@ -240,6 +240,8 @@ local function bootstrap()
     shell.run("mbs.lua", "install")
     upsertFile("startup/01_initializeShell.lua","startup/01_initializeShell.lua")
     upsertFile("startup/02_runStartupProgram.lua","startup/02_runStartupProgram.lua")
+    ---@diagnostic disable-next-line: undefined-field
+    os.reboot()
 end
 
 local function printProgramStartupWithVersion(program_name, program_version)
