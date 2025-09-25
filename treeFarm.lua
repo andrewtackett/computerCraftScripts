@@ -23,7 +23,6 @@ local treeStartX = tonumber(config["treeStartX"])
 local treeStartY = tonumber(config["treeStartY"])
 local treeStartZ = tonumber(config["treeStartZ"])
 
-local min_fuel_level = 250
 local wait_time_between_checks = tonumber(config["waitTimeBetweenChecks"]) --180 seconds
 
 local sapling_slot = 1
@@ -32,18 +31,24 @@ local off_limits_slots = { [sapling_slot] = true, [fuel_slot] = true }
 
 local row_length = 13
 local num_rows = 3
+local tree_height = 8
+local next_row_moves = 4
+local patrol_row_fuel_cost = tree_height * 2 * row_length
+local moving_to_next_row_fuel_cost = next_row_moves * num_rows
+local clean_up_fuel_cost = row_length * num_rows + moving_to_next_row_fuel_cost
+local min_fuel_level = patrol_row_fuel_cost * num_rows + moving_to_next_row_fuel_cost + clean_up_fuel_cost + 100 -- Extra 100 for safety margin
 
 local fuel_item_name = "minecraft:spruce_log"
 local sapling_item_name = "minecraft:spruce_sapling"
 local fuel_item_value = 15
 
 local function harvestTree()
-    common.printWithColor("Harvesting tree", colors.green)
+    common.printWithColor("Harvesting tree, fuel: " .. turtle.getFuelLevel(), colors.green)
     turtleCommon.safeDig()
     turtleCommon.goForward()
     local steps_up = 0
     while turtle.detectUp() do
-        common.log("Digging tree: " .. steps_up)
+        common.log("Digging tree: " .. steps_up, "debug")
         turtleCommon.safeDigUp()
         turtleCommon.goUp()
         steps_up = steps_up + 1
@@ -106,7 +111,7 @@ local function navigateToChestFromTreeStart()
 end
 
 local function navigateToNextRow(goLeft, goBack)
-    common.log("Navigating to next row, goLeft: " .. tostring(goLeft) .. ", goBack: " .. tostring(goBack))
+    common.log("Navigating to next row, fuel: " .. turtle.getFuelLevel() .. ", goLeft: " .. tostring(goLeft) .. ", goBack: " .. tostring(goBack))
     if goLeft then
         turtleCommon.goLeft(1)
         if goBack then
@@ -130,7 +135,7 @@ local function cleanUpDropsOnTreeBases()
     common.log("Cleaning up drops on row")
     local goLeft
     for i = 1, num_rows do
-        goLeft = (i % 2 == 1)
+        goLeft = (i % 2 == 0) -- Opposite of patrolRow
         for _ = 1, (row_length - 1) do
             turtle.suck() -- Grab any saplings on the way back
             if goLeft then
@@ -147,7 +152,7 @@ end
 
 local function patrolRow(goLeft)
     common.log("Patrolling row of length " .. row_length)
-    for i = 1, (row_length - 1) do
+    for i = 1, row_length do
         if not turtleCommon.detectSapling() and not turtleCommon.detectLog() then
             common.log("No sapling at " .. i .. ", planting new tree")
             turtle.select(sapling_slot)
@@ -156,10 +161,12 @@ local function patrolRow(goLeft)
             common.log("Tree detected at " .. i .. ", harvesting")
             harvestTree()
         end
-        if goLeft then
-            turtleCommon.goLeft(1)
-        else
-            turtleCommon.goRight(1)
+        if i < row_length then
+            if goLeft then
+                turtleCommon.goLeft(1)
+            else
+                turtleCommon.goRight(1)
+            end
         end
     end
 end
