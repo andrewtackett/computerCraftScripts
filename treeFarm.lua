@@ -57,8 +57,6 @@ local function harvestTree()
         turtleCommon.goDown()
     end
     turtleCommon.goBack()
-    turtle.select(sapling_slot)
-    turtle.place()
 end
 
 local function ensureFuel()
