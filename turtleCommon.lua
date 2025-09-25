@@ -146,7 +146,6 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
                 common.log(i .. " - last_open_slot: " .. last_open_slot, "debug")
                 chest.pushItems("front", 1, item_count, last_open_slot) -- Move non-fuel items to the back
                 items = chest.list() -- Refresh the item list
-                common.log("items: " .. items, "debug")
                 break
             end
 

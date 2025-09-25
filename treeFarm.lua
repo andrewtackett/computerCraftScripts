@@ -31,9 +31,9 @@ local off_limits_slots = { [sapling_slot] = true, [fuel_slot] = true }
 
 local row_length = 13
 local num_rows = 3
-local tree_height = 8
+local max_tree_height = 10
 local next_row_moves = 4
-local patrol_row_fuel_cost = tree_height * 2 * row_length
+local patrol_row_fuel_cost = max_tree_height * 2 * row_length
 local moving_to_next_row_fuel_cost = next_row_moves * num_rows
 local clean_up_fuel_cost = row_length * num_rows + moving_to_next_row_fuel_cost
 local min_fuel_level = patrol_row_fuel_cost * num_rows + moving_to_next_row_fuel_cost + clean_up_fuel_cost + 100 -- Extra 100 for safety margin
@@ -131,13 +131,18 @@ local function navigateToNextRow(goLeft, goBack)
     end
 end
 
-local function cleanUpDropsOnTreeBases()
+-- Wait to replant until trees are harvested so leaves actually drop saplings
+local function grabDropsAndReplant()
     common.log("Cleaning up drops on row")
     local goLeft
     for i = 1, num_rows do
         goLeft = (i % 2 == 0) -- Opposite of patrolRow
         for _ = 1, (row_length - 1) do
             turtle.suck() -- Grab any saplings on the way back
+            if not turtleCommon.detectSapling() and not turtleCommon.detectLog() then
+                turtle.select(sapling_slot)
+                turtle.place()
+            end
             if goLeft then
                 turtleCommon.goLeft(1)
             else
@@ -150,14 +155,10 @@ local function cleanUpDropsOnTreeBases()
     end
 end
 
-local function patrolRow(goLeft)
-    common.log("Patrolling row of length " .. row_length)
+local function patrolRow(rowNum, goLeft)
+    common.log("Patrolling row " .. rowNum .. " of length " .. row_length)
     for i = 1, row_length do
-        if not turtleCommon.detectSapling() and not turtleCommon.detectLog() then
-            common.log("No sapling at " .. i .. ", planting new tree")
-            turtle.select(sapling_slot)
-            turtle.place()
-        elseif turtleCommon.detectLog() then
+        if turtleCommon.detectLog() then
             common.log("Tree detected at " .. i .. ", harvesting")
             harvestTree()
         end
@@ -175,12 +176,12 @@ local function patrolRows()
     local goLeft
     for i = 1, num_rows do
         goLeft = (i % 2 == 1)
-        patrolRow(goLeft)
+        patrolRow(i, goLeft)
         if i < num_rows then
             navigateToNextRow(goLeft, false)
         end
     end
-    cleanUpDropsOnTreeBases()
+    grabDropsAndReplant()
 end
 
 local function printLoopStatus()
