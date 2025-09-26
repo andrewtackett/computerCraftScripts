@@ -12,6 +12,7 @@
 - Debug tree farm breaking on fueling
 - Expand tree farm to multiple rows/more output
 - Storatge dumping coordination between tunnel bots
+- Reconfigure so saplings don't plant on drop
 
 # Projects
 - Mob farms with spawners

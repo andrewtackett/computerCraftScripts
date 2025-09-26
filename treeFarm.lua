@@ -54,6 +54,7 @@ local function harvestTree()
         steps_up = steps_up + 1
     end
     for _ = 1, steps_up do
+        turtle.digDown()
         turtleCommon.goDown()
     end
     turtleCommon.goBack()
@@ -159,6 +160,8 @@ local function patrolRow(rowNum, goLeft)
         if turtleCommon.detectLog() then
             common.log("Tree detected at " .. i .. ", harvesting")
             harvestTree()
+        else
+            turtle.dig() -- Clear any saplings so they don't mess up later leaf drops collection
         end
         if i < row_length then
             if goLeft then
