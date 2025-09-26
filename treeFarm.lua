@@ -38,7 +38,7 @@ local moving_to_next_row_fuel_cost = next_row_moves * num_rows
 local clean_up_fuel_cost = row_length * num_rows + moving_to_next_row_fuel_cost
 local min_fuel_level = patrol_row_fuel_cost * num_rows + moving_to_next_row_fuel_cost + clean_up_fuel_cost + 100 -- Extra 100 for safety margin
 
-local fuel_item_name = "minecraft:spruce_log"
+local fuel_item_name = "minecraft:charcoal"
 local sapling_item_name = "minecraft:spruce_sapling"
 local fuel_item_value = 15
 
