@@ -14,4 +14,4 @@ curConfig["treeStartY"] = toSetY
 curConfig["treeStartZ"] = toSetZ
 
 common.writeConfigFile(curConfig)
-common.log("Storage set to " .. toSetX .. " " .. toSetY .. " " .. toSetZ)
+common.log("Tree start set to " .. toSetX .. " " .. toSetY .. " " .. toSetZ)

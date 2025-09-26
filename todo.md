@@ -12,6 +12,7 @@
 - Storatge dumping coordination between tunnel bots
 - Reconfigure so saplings don't plant on drop
 - Add multiple fuel items for treeFarm (sticks)
+- Make attack orient correctly to start
 
 # Projects
 - Mob farms with spawners
