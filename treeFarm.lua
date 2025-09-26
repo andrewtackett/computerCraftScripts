@@ -136,9 +136,9 @@ local function grabDropsAndReplant()
     local goLeft
     for i = 1, num_rows do
         goLeft = (i % 2 == 0) -- Opposite of patrolRow
-        for _ = 1, (row_length - 1) do
+        for j = 1, (row_length - 1) do
             turtle.suck() -- Grab any saplings on the way back
-            if not turtleCommon.detectSapling() and not turtleCommon.detectLog() then
+            if j % 2 == 0 then
                 turtle.select(sapling_slot)
                 turtle.place()
             end
@@ -148,6 +148,8 @@ local function grabDropsAndReplant()
                 turtleCommon.goRight(1)
             end
         end
+        turtle.suck()
+        turtle.place()
         if i < num_rows then
             navigateToNextRow(goLeft, true)
         end

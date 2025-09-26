@@ -9,10 +9,9 @@
 - should mining program reboot itself?
 - should all software have a "listen for updates" loop?
 - Make function to store item in inventory first look for existing to stack
-- Debug tree farm breaking on fueling
-- Expand tree farm to multiple rows/more output
 - Storatge dumping coordination between tunnel bots
 - Reconfigure so saplings don't plant on drop
+- Add multiple fuel items for treeFarm (sticks)
 
 # Projects
 - Mob farms with spawners
