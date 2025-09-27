@@ -40,7 +40,7 @@ local min_fuel_level = patrol_row_fuel_cost * num_rows + moving_to_next_row_fuel
 
 local fuel_item_name = "minecraft:charcoal"
 local sapling_item_name = "minecraft:spruce_sapling"
-local fuel_item_value = 15
+local fuel_item_value = 80
 
 local function harvestTree()
     common.printWithColor("Harvesting tree, fuel: " .. turtle.getFuelLevel(), colors.green)

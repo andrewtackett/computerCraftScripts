@@ -4,15 +4,15 @@
 - see if we can collect xp
 - Update tunnel (any) programs wirelessly
 - Make dumpGoods command
-- figure out startup files not working
-- what happens if you update running software?
 - should mining program reboot itself?
 - should all software have a "listen for updates" loop?
 - Make function to store item in inventory first look for existing to stack
-- Storatge dumping coordination between tunnel bots
-- Reconfigure so saplings don't plant on drop
+- Storage dumping coordination between tunnel bots
 - Add multiple fuel items for treeFarm (sticks)
 - Make attack orient correctly to start
+- Make a shutdown and save last command to resume program
+    - Storage command to file first then diff coordinates for tunnel?
+- Change treeFarm to try to refuel if out of fuel
 
 # Projects
 - Mob farms with spawners
