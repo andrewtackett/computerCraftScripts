@@ -78,7 +78,7 @@ local function ensureFuel()
         end
         local fuel_slot_selected = turtle.select(fuel_slot)
         local is_fuel, reason = turtle.refuel(needed_items)
-        common.log("fuel_slot_selected " .. fuel_slot_selected .. ", is_fuel " .. tostring(is_fuel) .. ", reason: " .. tostring(reason), "debug")
+        common.log("fuel_slot_selected " .. tostring(fuel_slot_selected) .. ", is_fuel " .. tostring(is_fuel) .. ", reason: " .. tostring(reason), "debug")
         if not hasEnoughFuel() then
             common.throwError("Refuel failed! " .. turtle.getFuelLevel() .. " / " .. min_fuel_level .. " fuel needed.")
         end

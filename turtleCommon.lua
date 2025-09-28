@@ -168,7 +168,7 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
     local slot_selected = turtle.select(slot_to_suck_into)
     local didSuck, reason = turtle.suck(turtle.getItemSpace(slot_to_suck_into))
     common.log("After suck, needed items left: " .. needed_items_left .. ", orig needed: " .. needed_items, "debug")
-    common.log("slot_selected: " .. slot_selected .. ", didSuck: " .. tostring(didSuck) .. ", reason: " .. tostring(reason), "debug")
+    common.log("slot_selected: " .. tostring(slot_selected) .. ", didSuck: " .. tostring(didSuck) .. ", reason: " .. tostring(reason), "debug")
     turtle.select(default_slot)
 end
 
