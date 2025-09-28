@@ -138,7 +138,7 @@ local function grabDropsAndReplant()
         goLeft = (i % 2 == 0) -- Opposite of patrolRow
         for j = 1, (row_length - 1) do
             turtle.suck() -- Grab any saplings on the way back
-            if j % 2 == 0 then
+            if j % 3 == 0 or j % 3 == 1 then
                 turtle.select(sapling_slot)
                 turtle.place()
             end
