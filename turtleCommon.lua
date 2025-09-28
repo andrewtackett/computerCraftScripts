@@ -138,7 +138,7 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
         if items[i] ~= nil then
             local item_name = items[i].name
             local item_count = items[i].count
-            common.log("restock test: " .. i .. ", name: " .. item_name .. ", count: " .. item_count)
+            common.log("restock test: " .. i .. ", name: " .. item_name .. ", count: " .. item_count, "debug")
 
             if i == 1 and item_name ~= desired_item_name then
                 common.log("Rearranging chest to move different item from slot 1 to the back")
@@ -146,12 +146,7 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
                 common.log(i .. " - last_open_slot: " .. last_open_slot, "debug")
                 chest.pushItems("front", 1, item_count, last_open_slot) -- Move non-fuel items to the back
                 items = chest.list() -- Refresh the item list
-                break
-            end
-
-            common.log("->" .. item_name .. " " .. item_count, "debug")
-
-            if item_name == desired_item_name then
+            elseif item_name == desired_item_name then
                 common.log("Found desired item: " .. i .. item_name .. item_count, "debug")
                 if item_count >= needed_items_left then
                     chest.pullItems("front", i, needed_items_left, 1)
@@ -161,7 +156,7 @@ local function restockItem(desired_item_name, needed_items, slot_to_suck_into, d
                     chest.pullItems("front", i, item_count, 1)
                     needed_items_left = needed_items_left - item_count
                 end
-            end
+            end   
         end
     end
     common.log("Needed items left: " .. needed_items_left .. ", orig needed: " .. needed_items, "debug")
