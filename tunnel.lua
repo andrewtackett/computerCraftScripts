@@ -27,11 +27,12 @@ local storageZ = tonumber(config["storageZ"])
 
 local distance_between_torches = 6
 local tunnelLength = args[1] or 100
+local tunnelHeight = args[2] or tonumber(config["tunnelHeight"])
+local tunnelWidth = 3 -- hardcoded by algorithm
 
 
 local torch_slot = 16
 local off_limits_slots = { [16] = true }
-local tunnelHeight = args[2] or tonumber(config["tunnelHeight"])
 
 local function navigateToStorage()
     common.log("Navigating to storage")
@@ -109,7 +110,8 @@ local function shouldPlaceTorch()
     end
     local storageXOffset = (storageX % distance_between_torches)
     local storageZOffset = (storageZ % distance_between_torches)
-    local placeTorchHere =  (xOffset == storageXOffset) and (zOffset == storageZOffset)
+    local alternatingRows = storageXOffset < tunnelWidth and storageZOffset < tunnelWidth
+    local placeTorchHere =  (xOffset == storageXOffset) and (zOffset == storageZOffset) and alternatingRows
     common.log("Should place torch? " .. tostring(placeTorchHere) .. ", current: " .. currentX .. "|" .. currentZ .. ", offset: " .. xOffset .. "|" .. zOffset .. ", storage offset: " .. storageXOffset .. "|" .. storageZOffset, "debug")
     return placeTorchHere
 end
