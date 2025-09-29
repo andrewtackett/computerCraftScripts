@@ -17,21 +17,21 @@ local gps = gps
 
 local args = {...}
 if #args < 1 then
-    print("Usage: tunnel <tunnelLength> [placeTorches] [tunnelHeight]")
+    print("Usage: tunnel <tunnelLength> [tunnelHeight]")
     return
 end
 local config = common.readConfigFile()
-local tunnelLength = args[1]
-local placeTorches = args[2] == "true" or false
-
 local storageX = tonumber(config["storageX"])
-local storageY = tonumber(config["storageY"])
+-- local storageY = tonumber(config["storageY"])
 local storageZ = tonumber(config["storageZ"])
+
+local distance_between_torches = 6
+local tunnelLength = args[1] or 100
+
 
 local torch_slot = 16
 local off_limits_slots = { [16] = true }
-local distance_between_torches = 6
-local tunnelHeight = args[3] or tonumber(config["tunnelHeight"])
+local tunnelHeight = args[2] or tonumber(config["tunnelHeight"])
 
 local function navigateToStorage()
     common.log("Navigating to storage")
@@ -98,39 +98,32 @@ local function ensureInventorySpace()
     end
 end
 
-local function getMaxOffset()
-    local currentX, currentY, currentZ = gps.locate()
-    local xOffset = math.abs(storageX - currentX)
-    local yOffset = math.abs(storageY - currentY)
-    local zOffset = math.abs(storageZ - currentZ)
-    common.log("getMaxOffset: " .. xOffset .. "|" .. yOffset .. "|" .. zOffset, "debug")
-    local offsetTable = { xOffset, yOffset, zOffset }
-    table.sort(offsetTable)
-    common.log("getMaxOffset, offsetTable: " .. tostring(offsetTable[#offsetTable]), "debug")
-    local maxOffset = offsetTable[#offsetTable]
-    return maxOffset
+local function shouldPlaceTorch()
+    local currentX, _, currentZ = gps.locate()
+    local xOffset = currentX % distance_between_torches
+    local zOffset = currentZ % distance_between_torches
+    -- Don't place torch at storage start
+    if not (xOffset > 1 or zOffset > 1) then
+        common.log("Not placing torch at storage start " .. currentX .. "|" .. currentZ .. ", " .. xOffset .. "|" .. zOffset, "debug")
+        return false
+    end
+    local storageXOffset = (storageX % distance_between_torches)
+    local storageZOffset = (storageZ % distance_between_torches)
+    local placeTorchHere =  (xOffset == storageXOffset) and (zOffset == storageZOffset)
+    common.log("Should place torch? " .. tostring(placeTorchHere) .. ", current: " .. currentX .. "|" .. currentZ .. ", offset: " .. xOffset .. "|" .. zOffset .. ", storage offset: " .. storageXOffset .. "|" .. storageZOffset, "debug")
+    return placeTorchHere
 end
 
-local function placeTorch()
-    if placeTorches then
+local function tryPlaceTorch()
+    if shouldPlaceTorch() then
         ensureTorches()
-        local torchOffset = getMaxOffset()
-        common.log("torchoffset: " .. torchOffset, "debug")
-        -- Don't block storage by putting torch at start
-        if torchOffset ~= 1 then
-            common.log("calc1: ".. tostring(torchOffset % distance_between_torches), "debug")
-            common.log("calc2: " .. tostring((torchOffset % distance_between_torches) - 1 == 0), "debug")
-            -- Add one so we don't put a torch where we're starting blocking storage
-            if (torchOffset % distance_between_torches) - 1 == 0 then
-                turtle.select(torch_slot)
-                turtle.turnRight()
-                turtle.turnRight()
-                turtle.place()
-                turtle.turnLeft()
-                turtle.turnLeft()
-                common.log("Placed torch", "debug")
-            end
-        end
+        turtle.select(torch_slot)
+        turtle.turnRight()
+        turtle.turnRight()
+        turtle.place()
+        turtle.turnLeft()
+        turtle.turnLeft()
+        common.log("Placed torch", "debug")
     end
 end
 
@@ -185,7 +178,7 @@ local function digStep()
     digWithFallGuard()
     turtleCommon.goForward()
     clearAboveFallingItemsFromLastStep()
-    placeTorch()
+    tryPlaceTorch()
     digLeftAndRight()
 
     for _=1, (tunnelHeight - 1) do

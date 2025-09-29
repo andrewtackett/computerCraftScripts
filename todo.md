@@ -3,9 +3,8 @@
     - have to have crafty turtle?
 - see if we can collect xp
 - Update tunnel (any) programs wirelessly
-- Make dumpGoods command
-- should mining program reboot itself?
 - should all software have a "listen for updates" loop?
+- Make dumpGoods command
 - Make function to store item in inventory first look for existing to stack
 - Storage dumping coordination between tunnel bots
 - Add multiple fuel items for treeFarm (sticks)
@@ -13,6 +12,9 @@
 - Make a shutdown and save last command to resume program
     - Storage command to file first then diff coordinates for tunnel?
 - Change treeFarm to try to refuel if out of fuel
+- Tunnel
+    - Expand to keep doing down further rows
+    - Expand to not need to input placeTorches or not
 
 # Projects
 - Mob farms with spawners

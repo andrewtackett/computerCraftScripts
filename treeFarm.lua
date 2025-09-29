@@ -42,6 +42,16 @@ local fuel_item_name = "minecraft:charcoal"
 local sapling_item_name = "minecraft:spruce_sapling"
 local fuel_item_value = 80
 
+local function navigateToTreeStartFromChest()
+    common.log("Navigating to row start from chest")
+    turtleCommon.navigateToPoint(treeStartX, treeStartY, treeStartZ, true)
+end
+
+local function navigateToChestFromTreeStart()
+    common.log("Navigating to chest from row start")
+    turtleCommon.navigateToPoint(storageX, storageY, storageZ, false)
+end
+
 local function harvestTree()
     common.printWithColor("Harvesting tree, fuel: " .. turtle.getFuelLevel(), colors.green)
     turtleCommon.safeDig()
@@ -86,6 +96,14 @@ local function ensureFuel()
     end
 end
 
+local function fuelPrecheck()
+    if turtle.getFuelLevel() < min_fuel_level then
+        navigateToChestFromTreeStart()
+        ensureFuel()
+        navigateToTreeStartFromChest()
+    end
+end
+
 local function ensureSaplings()
     local function storageHasEnoughSaplings()
         return turtle.getItemCount(sapling_slot) <= (row_length * num_rows) + 1
@@ -98,16 +116,6 @@ local function ensureSaplings()
             common.waitForFix(storageHasEnoughSaplings, 30)
         end
     end
-end
-
-local function navigateToTreeStartFromChest()
-    common.log("Navigating to row start from chest")
-    turtleCommon.navigateToPoint(treeStartX, treeStartY, treeStartZ, true)
-end
-
-local function navigateToChestFromTreeStart()
-    common.log("Navigating to chest from row start")
-    turtleCommon.navigateToPoint(storageX, storageY, storageZ, false)
 end
 
 local function navigateToNextRow(goLeft, goBack)
@@ -197,6 +205,7 @@ end
 local function main()
     common.printProgramStartupWithVersion("Tree Farm", version)
     turtle.select(sapling_slot)
+    fuelPrecheck()
 
     while true do
         printLoopStatus()

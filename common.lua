@@ -210,12 +210,14 @@ local function upsertAll(get_commands)
     if get_commands then
         local commands = {
             [1] =  "back.lua",
+            [17] = "backToTreeStart.lua",
             [2] =  "coordinates.lua",
             [3] =  "down.lua",
             [4] =  "forward.lua",
             [5] =  "left.lua",
             [6] =  "printfuel.lua",
             [7] =  "refuel.lua",
+            [18] = "returnToStart.lua",
             [8] =  "right.lua",
             [9] =  "select.lua",
             [10] = "setStorageLocation.lua",
