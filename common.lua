@@ -1,7 +1,7 @@
 -- Common utility functions
 local version = { major=1, minor=0, patch=0 }
 local args = {...}
-local should_bootstrap = args[1] == "true" or false
+local should_bootstrap = args[1] == "true"
 
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global

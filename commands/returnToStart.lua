@@ -1,7 +1,7 @@
 local args = {...}
 local common = require("common")
 local turtleCommon = require("turtleCommon")
-local isTreeFarm = args[1] == "true" or false
+local isTreeFarm = args[1] == "true"
 
 local destinationX, destinationY, destinationZ
 local config = common.readConfigFile()
