@@ -17,12 +17,26 @@ local gps = gps
 
 local args = {...}
 if #args < 1 then
-    print("Usage: tunnel <tunnelLength> [tunnelHeight]")
+    print("Usage: tunnel <tunnelLength> [tunnelHeight] [setStorageLocation]")
     return
 end
+local setStorageLocation = not (args[3] == "false")
+
+if setStorageLocation then
+    common.log("Resetting storage location")
+    local currentX, currentY, currentZ = gps.locate()
+    local curConfig = common.readConfigFile()
+    curConfig["storageX"] = currentX
+    curConfig["storageY"] = currentY
+    curConfig["storageZ"] = currentZ
+
+    common.writeConfigFile(curConfig)
+    common.log("Storage set to " .. currentX .. " " .. currentY .. " " .. currentZ)
+end
+
 local config = common.readConfigFile()
 local storageX = tonumber(config["storageX"])
--- local storageY = tonumber(config["storageY"])
+local storageY = tonumber(config["storageY"])
 local storageZ = tonumber(config["storageZ"])
 
 local distance_between_torches = 6
@@ -36,9 +50,6 @@ local off_limits_slots = { [16] = true }
 
 local function navigateToStorage()
     common.log("Navigating to storage")
-    local storageX = tonumber(config["storageX"])
-    local storageY = tonumber(config["storageY"])
-    local storageZ = tonumber(config["storageZ"])
     common.log("Storage coordinates: " .. storageX .. "|" .. storageY .. "|" .. storageZ, "debug")
     turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
     common.log("Arrived at storage")

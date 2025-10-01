@@ -195,12 +195,12 @@ end
 local function upsertAll(get_commands)
     get_commands = get_commands or false
     local programs = { 
-        [1] = "treeFarm.lua",
-        [2] = "tunnel.lua",
-        [3] = "turtleCommon.lua",
-        [4] = "common.lua",
-        [5] = "attack.lua",
-        [6] = "mbs.lua",
+        "attack.lua",
+        "common.lua",
+        "treeFarm.lua",
+        "tunnel.lua",
+        "turtleCommon.lua",
+        "mbs.lua",
     }
     for i=1,#programs do
         log("Upsert all: " .. programs[i])
@@ -209,24 +209,26 @@ local function upsertAll(get_commands)
     end
     if get_commands then
         local commands = {
-            [1] =  "back.lua",
-            [17] = "backToTreeStart.lua",
-            [2] =  "coordinates.lua",
-            [3] =  "down.lua",
-            [4] =  "forward.lua",
-            [5] =  "left.lua",
-            [6] =  "printfuel.lua",
-            [7] =  "refuel.lua",
-            [18] = "returnToStart.lua",
-            [8] =  "right.lua",
-            [9] =  "select.lua",
-            [10] = "setStorageLocation.lua",
-            [11] = "setTreeStart.lua",
-            [12] = "tleft.lua",
-            [13] = "tright.lua",
-            [14] = "up.lua",
-            [15] = "upsert.lua",
-            [16] = "upsertAll.lua",
+            "back.lua",
+            "backToTreeStart.lua",
+            "coordinates.lua",
+            "down.lua",
+            "forward.lua",
+            "left.lua",
+            "listenForMessages.lua",
+            "printfuel.lua",
+            "refuel.lua",
+            "returnToStart.lua",
+            "right.lua",
+            "select.lua",
+            "sendLocationCheck.lua",
+            "setStorageLocation.lua",
+            "setTreeStart.lua",
+            "tleft.lua",
+            "tright.lua",
+            "up.lua",
+            "upsert.lua",
+            "upsertAll.lua",
         }
         for i=1,#commands do
             log("Update all commands: " .. commands[i])
@@ -242,6 +244,7 @@ local function bootstrap()
     shell.run("mbs.lua", "install")
     upsertFile("startup/01_initializeShell.lua","startup/01_initializeShell.lua")
     upsertFile("startup/02_runStartupProgram.lua","startup/02_runStartupProgram.lua")
+    upsertFile("startup/03_startListenTab.lua","startup/03_startListenTab.lua")
     ---@diagnostic disable-next-line: undefined-field
     os.reboot()
 end

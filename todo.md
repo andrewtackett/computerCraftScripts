@@ -4,6 +4,10 @@
 - see if we can collect xp
 - Update tunnel (any) programs wirelessly
 - should all software have a "listen for updates" loop?
+    - Respond to ping with coordinates
+    - On startup open second tab to listen for commands
+        - Can we stop programs in other tabs?
+            - Switch tab and exit?
 - Make dumpGoods command
 - Make function to store item in inventory first look for existing to stack
 - Storage dumping coordination between tunnel bots
@@ -15,6 +19,7 @@
 - Tunnel
     - Expand to keep doing down further rows
     - Expand to not need to input placeTorches or not
+    - When in same place for a long time, send message
 
 # Projects
 - Mob farms with spawners
@@ -24,3 +29,7 @@
  - Cow
  - Wither?
  - End Dragon?
+- More power production
+- More AE drives
+
+ upsert setStorageLocation.lua commands/setStorageLocation.lua
