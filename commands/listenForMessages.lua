@@ -11,17 +11,21 @@ local shell = shell
 ---@diagnostic disable-next-line: undefined-global
 local gps = gps
 
+local function sendReplyCCmain(replyId, msg)
+    -- Main is ID:0
+    rednet.send(0, msg)
+    rednet.send(replyId, msg)
+end
+
 peripheral.find("modem", rednet.open)
 local id, message
 repeat
     id, message = rednet.receive()
-    print("ID #" .. id .. " sent: " .. message)
     common.log("ID #" .. id .. " sent: " .. message)
     if message == "location_check" then
         common.log("Responding to location_check")
-        print("Responding to location_check")
         local currentX, currentY, currentZ = gps.locate()
-        rednet.send(id, os.getComputerLabel() .. " is at " .. currentX .. " | " .. currentY .. " | " .. currentZ)
+        sendReplyCCmain(id, os.getComputerLabel() .. " is at " .. currentX .. " | " .. currentY .. " | " .. currentZ)
         -- also return running program name/args?
     end
 until message == "stop"
