@@ -18,24 +18,28 @@ local fs = fs
 local shell = shell
 ---@diagnostic disable-next-line: undefined-global
 local http = http
+---@diagnostic disable-next-line: undefined-global
+local rednet = rednet
+---@diagnostic disable-next-line: undefined-global
+local peripheral = peripheral
 
 -- Color codes reference:
 
 -- colors.white	    1	    0x1	    0		#F0F0F0	240, 240, 240	
--- colors.orange	2	    0x2	    1		#F2B233	242, 178, 51	
+-- colors.orange	2	    0x2	    1		#F2B233	242, 178, 51	x
 -- colors.magenta	4	    0x4	    2		#E57FD8	229, 127, 216	
--- colors.lightBlue	8	    0x8	    3		#99B2F2	153, 178, 242	
--- colors.yellow	16	    0x10	4		#DEDE6C	222, 222, 108	
+-- colors.lightBlue	8	    0x8	    3		#99B2F2	153, 178, 242	x
+-- colors.yellow	16	    0x10	4		#DEDE6C	222, 222, 108	x
 -- colors.lime	    32	    0x20	5		#7FCC19	127, 204, 25	
 -- colors.pink	    64	    0x40	6		#F2B2CC	242, 178, 204	
--- colors.gray	    128	    0x80	7		#4C4C4C	76, 76, 76	
+-- colors.gray	    128	    0x80	7		#4C4C4C	76, 76, 76	    x
 -- colors.lightGray	256	    0x100	8		#999999	153, 153, 153	
 -- colors.cyan	    512	    0x200	9		#4C99B2	76, 153, 178	
--- colors.purple	1024	0x400	a		#B266E5	178, 102, 229	
+-- colors.purple	1024	0x400	a		#B266E5	178, 102, 229	x
 -- colors.blue	    2048	0x800	b		#3366CC	51, 102, 204	
 -- colors.brown	    4096	0x1000	c		#7F664C	127, 102, 76	
--- colors.green	    8192	0x2000	d		#57A64E	87, 166, 78	
--- colors.red	    16384	0x4000	e		#CC4C4C	204, 76, 76	
+-- colors.green	    8192	0x2000	d		#57A64E	87, 166, 78	    x
+-- colors.red	    16384	0x4000	e		#CC4C4C	204, 76, 76	    x
 -- colors.black     32768	0x8000	f		#191919	25, 25, 25
 
 local info_color    = colors.lightBlue
@@ -44,6 +48,7 @@ local error_color   = colors.red
 local success_color = colors.green
 local verbose_color = colors.purple
 local debug_color   = colors.gray
+local broadcast_color = colors.yellow
 local default_color = colors.green
 
 -- t = {[1]=true, [2]=true}
@@ -112,6 +117,8 @@ local function log(msg, level, loggingMode)
         color = verbose_color
     elseif level == "debug" then
         color = debug_color
+    elseif level == "broadcast" then
+        color = broadcast_color
     end
 
     if loggingMode == "normal" and (level == "debug" or level == "verbose") then
@@ -122,6 +129,10 @@ local function log(msg, level, loggingMode)
     term.setTextColor(color)
     print(msg)
     term.setTextColor(default_color)
+    if level == "broadcast" then
+        peripheral.find("modem", rednet.open)
+        rednet.broadcast(msg)
+    end
 end
 
 -- TODO
@@ -242,8 +253,8 @@ local function bootstrap()
     upsertAll(true)
     shell.run("mbs.lua", "install")
     upsertFile("startup/01_initializeShell.lua","startup/01_initializeShell.lua")
-    upsertFile("startup/02_runStartupProgram.lua","startup/02_runStartupProgram.lua")
-    upsertFile("startup/03_startListenTab.lua","startup/03_startListenTab.lua")
+    upsertFile("startup/02_startListenTab.lua","startup/02_startListenTab.lua")
+    upsertFile("startup/03_runStartupProgram.lua","startup/03_runStartupProgram.lua")
     ---@diagnostic disable-next-line: undefined-field
     os.reboot()
 end

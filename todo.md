@@ -20,6 +20,13 @@
     - Expand to keep doing down further rows
     - Expand to not need to input placeTorches or not
     - When in same place for a long time, send message
+- Make storeGoods avoid torches by offset calculation
+    - Have all turtles store in same storage (different parts)
+    - Look for perpipheral on all sides with storage size
+- Make navigateToPoint try other axes if one fails/pathfind?
+- Monitor
+    - Make monitor scrollable
+
 
 # Projects
 - Mob farms with spawners
