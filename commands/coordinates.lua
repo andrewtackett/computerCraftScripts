@@ -2,3 +2,8 @@
 
 ---@diagnostic disable-next-line: undefined-global
 print(gps.locate())
+
+local version = 1
+return {
+    version = version
+}

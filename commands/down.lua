@@ -4,7 +4,7 @@ local turtleCommon = require("turtleCommon")
 
 turtleCommon.goDown(numSteps)
 
-local version = { major=1, minor=0, patch=0 }
+local version = 1
 return {
     version = version
 }

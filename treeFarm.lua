@@ -9,8 +9,9 @@ local sleep = sleep
 local textutils = textutils
 ---@diagnostic disable-next-line: undefined-global
 local colors = colors
+---@diagnostic disable-next-line: undefined-global
+local gps = gps
 
-local version = { major=1, minor=0, patch=0 }
 local common = require("common")
 local turtleCommon = require("turtleCommon")
 local config = common.readConfigFile()
@@ -71,16 +72,15 @@ local function harvestTree()
 end
 
 local function ensureFuel()
-    local function hasEnoughFuel()
-        return turtle.getFuelLevel() >= min_fuel_level
-    end
-    if not hasEnoughFuel() then
+    if turtle.getFuelLevel() < min_fuel_level then
+        local currentX, currentY, currentZ = gps.locate()
         local current_fuel = turtle.getFuelLevel()
         local needed_fuel = min_fuel_level - current_fuel
         local needed_items = math.ceil(needed_fuel / fuel_item_value)
         common.log("Refueling from " .. current_fuel .. " to " .. min_fuel_level .. ", need " .. needed_items .. " items")
         if turtle.getItemCount(fuel_slot) < needed_items then
             common.log("Not enough fuel in fuel slot!","warning")
+            turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
             turtleCommon.restockItem(fuel_item_name, needed_items, fuel_slot, sapling_slot, "front")
             if turtle.getItemCount(fuel_slot) < needed_items then
                 common.throwError("Not enough fuel in storage!")
@@ -89,18 +89,11 @@ local function ensureFuel()
         local fuel_slot_selected = turtle.select(fuel_slot)
         local is_fuel, reason = turtle.refuel(needed_items)
         common.log("fuel_slot_selected " .. tostring(fuel_slot_selected) .. ", is_fuel " .. tostring(is_fuel) .. ", reason: " .. tostring(reason), "debug")
-        if not hasEnoughFuel() then
+        if turtle.getFuelLevel() < min_fuel_level then
             common.throwError("Refuel failed! " .. turtle.getFuelLevel() .. " / " .. min_fuel_level .. " fuel needed.")
         end
         turtle.select(sapling_slot)
-    end
-end
-
-local function fuelPrecheck()
-    if turtle.getFuelLevel() < min_fuel_level then
-        navigateToChestFromTreeStart()
-        ensureFuel()
-        navigateToTreeStartFromChest()
+        turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
     end
 end
 
@@ -205,7 +198,7 @@ end
 local function main()
     common.printProgramStartupWithVersion("Tree Farm", version)
     turtle.select(sapling_slot)
-    fuelPrecheck()
+    ensureFuel()
 
     while true do
         printLoopStatus()
@@ -231,6 +224,7 @@ end
 
 main()
 
+local version = 1
 return {
     version = version,
     main = main,

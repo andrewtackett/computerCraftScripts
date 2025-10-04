@@ -19,3 +19,8 @@ repeat
     numberOfResponses = numberOfResponses + 1
 until numberOfResponses == numberOfResponsesToWaitFor
 --or os.clock() - startTime > timeout
+
+local version = 1
+return {
+    version = version
+}

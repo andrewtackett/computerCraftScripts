@@ -15,3 +15,8 @@ curConfig["storageZ"] = toSetZ
 
 common.writeConfigFile(curConfig)
 common.log("Storage set to " .. toSetX .. " " .. toSetY .. " " .. toSetZ)
+
+local version = 1
+return {
+    version = version
+}

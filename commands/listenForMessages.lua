@@ -29,3 +29,8 @@ repeat
         -- also return running program name/args?
     end
 until message == "stop"
+
+local version = 1
+return {
+    version = version
+}

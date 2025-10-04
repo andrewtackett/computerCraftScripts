@@ -32,3 +32,8 @@ local function listenForMessage()
 end
 
 parallel.waitForAll(runIt, listenForMessage)
+
+local version = 1
+return {
+    version = version
+}

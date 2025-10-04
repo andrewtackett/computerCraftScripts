@@ -1,9 +1,6 @@
-
 ---@diagnostic disable-next-line: undefined-global
 local turtle = turtle
-local version = { major=1, minor=0, patch=0 }
 local common = require("common")
-local config = common.readConfigFile()
 
 ---@diagnostic disable-next-line: undefined-global
 local peripheral = peripheral
@@ -12,62 +9,92 @@ local sleep = sleep
 ---@diagnostic disable-next-line: undefined-global
 local gps = gps
 
-local function goLeft(distance)
+local function goLeft(distance, continueProgramOnFail)
     distance = distance or 1
     turtle.turnLeft()
     for _ = 1, distance do
         if not turtle.forward() then
-            common.throwError("Failed to go left. Stopping...")
+            if continueProgramOnFail then
+                return false
+            else
+                common.throwError("Failed to go left. Stopping...")
+            end
         end
     end
     turtle.turnRight()
+    return true
 end
 
-local function goRight(distance)
+local function goRight(distance, continueProgramOnFail)
     distance = distance or 1
     turtle.turnRight()
     for _ = 1, distance do
         if not turtle.forward() then
-            common.throwError("Failed to go right. Stopping...")
+            if continueProgramOnFail then
+                return false
+            else
+                common.throwError("Failed to go right. Stopping...")
+            end
         end
     end
     turtle.turnLeft()
+    return true
 end
 
-local function goUp(distance)
+local function goUp(distance, continueProgramOnFail)
     distance = distance or 1
     for _ = 1, distance do
         if not turtle.up() then
-            common.throwError("Failed to go up. Stopping...")
+            if continueProgramOnFail then
+                return false
+            else
+                common.throwError("Failed to go up. Stopping...")
+            end
         end
     end
+    return true
 end
 
-local function goDown(distance)
+local function goDown(distance, continueProgramOnFail)
     distance = distance or 1
     for _ = 1, distance do
         if not turtle.down() then
-            common.throwError("Failed to go down. Stopping...")
+            if continueProgramOnFail then
+                return false
+            else
+                common.throwError("Failed to go down. Stopping...")
+            end
         end
     end
+    return true
 end
 
-local function goBack(distance)
+local function goBack(distance, continueProgramOnFail)
     distance = distance or 1
     for _ = 1, distance do
         if not turtle.back() then
-            common.throwError("Failed to go back. Stopping...")
+            if continueProgramOnFail then
+                return false
+            else
+                common.throwError("Failed to go back. Stopping...")
+            end
         end
     end
+    return true
 end
 
-local function goForward(distance)
+local function goForward(distance, continueProgramOnFail)
     distance = distance or 1
     for _ = 1, distance do
         if not turtle.forward() then
-            common.throwError("Failed to go forward. Stopping...")
+            if continueProgramOnFail then
+                return false
+            else
+                common.throwError("Failed to go forward. Stopping...")
+            end
         end
     end
+    return true
 end
 
 local function safeDig()
@@ -193,25 +220,7 @@ end
 local function determineWhichDirectionCurrentlyFacing()
     local x, _, z = gps.locate()
     local direction = ""
-    if turtle.forward() then
-        local x2, _, z2 = gps.locate()
-        local xOffset = x2 - x
-        local zOffset = z2 - z
-        if xOffset ~= 0 then
-            if xOffset < 0 then
-                direction = "xNeg"
-            else
-                direction = "xPos"
-            end
-        elseif zOffset ~= 0 then
-            if zOffset < 0 then
-                direction = "zNeg"
-            else
-                direction = "zPos"
-            end
-        end
-        goBack(1)
-    elseif turtle.back() then
+    if turtle.back() then
         local x2, _, z2 = gps.locate()
         local xOffset = x2 - x
         local zOffset = z2 - z
@@ -229,6 +238,24 @@ local function determineWhichDirectionCurrentlyFacing()
             end
         end
         goForward(1)
+    elseif turtle.forward() then
+        local x2, _, z2 = gps.locate()
+        local xOffset = x2 - x
+        local zOffset = z2 - z
+        if xOffset ~= 0 then
+            if xOffset < 0 then
+                direction = "xNeg"
+            else
+                direction = "xPos"
+            end
+        elseif zOffset ~= 0 then
+            if zOffset < 0 then
+                direction = "zNeg"
+            else
+                direction = "zPos"
+            end
+        end
+        goBack(1)
     else
         common.throwError("Can't move forward or backward to determine direction")
     end
@@ -262,68 +289,57 @@ local function getNavigationFunctionsFromDirection(currentDirection)
     return goXPos, goXNeg, goZPos, goZNeg
 end
 
+local function moveToTargetCoordinateOnAxis(current, target, movePositiveFunc, moveNegativeFunc)
+    if current < target then
+        movePositiveFunc(target - current, true)
+    elseif current > target then
+        moveNegativeFunc(current - target, true)
+    end
+end
+
+-- do some kind of A* pathfinding here?
+-- abstract order of axis movement?
+
 local function navigateToPoint(target_x, target_y, target_z, y_first)
     local current_x, current_y, current_z = gps.locate()
+    if current_x == target_x and current_y == target_y and current_z == target_z then
+        common.log("Already at target point " .. target_x .. "|" .. target_y .. "|" .. target_z)
+        return
+    end
     local currentDirection = determineWhichDirectionCurrentlyFacing()
     common.log("currentDirection " .. currentDirection, "debug")
     local goXPos, goXNeg, goZPos, goZNeg = getNavigationFunctionsFromDirection(currentDirection)
 
     while current_x ~= target_x or current_y ~= target_y or current_z ~= target_z do
-        local xOffset, yOffset, zOffset = math.abs(target_x - current_x), math.abs(target_y - current_y), math.abs(target_z - current_z)
-        common.log("offsets " .. xOffset .. "|" .. yOffset .. "|" .. zOffset, "debug")
-
         if y_first then
             common.log("Doing Y dir", "debug")
-            if current_y < target_y then
-                goUp(yOffset)
-            elseif current_y > target_y then
-                goDown(yOffset)
-            end
+            moveToTargetCoordinateOnAxis(current_y, target_y, goUp, goDown)
         end
 
         if currentDirection == "xPos" or currentDirection == "xNeg" then
             common.log("Doing x dir", "debug")
-            if current_x < target_x then
-                goXPos(xOffset)
-            elseif current_x > target_x then
-                goXNeg(xOffset)
-            end
+            moveToTargetCoordinateOnAxis(current_x, target_x, goXPos, goXNeg)
 
             common.log("Doing z dir", "debug")
-            if current_z < target_z then
-                goZPos(zOffset)
-            elseif current_z > target_z then
-                goZNeg(zOffset)
-            end
+            moveToTargetCoordinateOnAxis(current_z, target_z, goZPos, goZNeg)
         elseif currentDirection == "zPos" or currentDirection == "zNeg" then
             common.log("Doing z dir", "debug")
-            if current_z < target_z then
-                goZPos(zOffset)
-            elseif current_z > target_z then
-                goZNeg(zOffset)
-            end
+            moveToTargetCoordinateOnAxis(current_z, target_z, goZPos, goZNeg)
 
             common.log("Doing x dir", "debug")
-            if current_x < target_x then
-                goXPos(xOffset)
-            elseif current_x > target_x then
-                goXNeg(xOffset)
-            end
+            moveToTargetCoordinateOnAxis(current_x, target_x, goXPos, goXNeg)
         end
 
 
         if not y_first then
             common.log("Doing Y dir", "debug")
-            if current_y < target_y then
-                goUp(yOffset)
-            elseif current_y > target_y then
-                goDown(yOffset)
-            end
+            moveToTargetCoordinateOnAxis(current_y, target_y, goUp, goDown)
         end
         current_x, current_y, current_z = gps.locate()
     end
 end
 
+local version = 1
 return {
     version = version,
     goLeft = goLeft,

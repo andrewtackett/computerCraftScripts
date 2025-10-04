@@ -12,3 +12,8 @@ if programToRun then
 ---@diagnostic disable-next-line: undefined-global
     shell.run(programToRun)
 end
+
+local version = 1
+return {
+    version = version
+}

@@ -1,10 +1,11 @@
-local version = { major=1, minor=0, patch=0 }
 local common = require("common")
 local args = {...}
-local get_commands = args[1] == "true"
+local getCommands = args[1] == "true"
+local getStartupFiles = args[2] == "true"
 
-common.upsertAll(get_commands)
+common.upsertAll(getCommands, getStartupFiles)
 
+local version = 1
 return {
     version = version,
 }

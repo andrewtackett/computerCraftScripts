@@ -1,7 +1,6 @@
 -- Common utility functions
-local version = { major=1, minor=0, patch=0 }
 local args = {...}
-local should_bootstrap = args[1] == "true"
+local shouldBootstrap = args[1] == "true"
 
 -- Ensure global APIs are recognized by linters
 ---@diagnostic disable-next-line: undefined-global
@@ -203,8 +202,8 @@ local function upsertFile(filename_or_path, destination)
     log("Installed " .. destination)
 end
 
-local function upsertAll(get_commands)
-    get_commands = get_commands or false
+local function upsertAll(getCommands, getStartupFiles)
+    getCommands = getCommands or false
     local programs = { 
         "attack.lua",
         "common.lua",
@@ -218,7 +217,7 @@ local function upsertAll(get_commands)
         upsertFile(programs[i])
         sleep(1)
     end
-    if get_commands then
+    if getCommands then
         local commands = {
             "back.lua",
             "coordinates.lua",
@@ -246,29 +245,39 @@ local function upsertAll(get_commands)
             sleep(1)
         end
     end
+    if getStartupFiles then
+        local startupFiles = {
+            "01_initializeShell.lua",
+            "02_startListenTab.lua",
+            "03_runStartupProgram.lua",
+        }
+        for i=1,#startupFiles do
+            log("Update all startup files: " .. startupFiles[i])
+            upsertFile("startup/" .. startupFiles[i], "startup/" .. startupFiles[i])
+            sleep(1)
+        end
+    end
 end
 
 local function bootstrap()
     upsertFile("config.cfg")
-    upsertAll(true)
+    upsertAll(true, true)
     shell.run("mbs.lua", "install")
-    upsertFile("startup/01_initializeShell.lua","startup/01_initializeShell.lua")
-    upsertFile("startup/02_startListenTab.lua","startup/02_startListenTab.lua")
-    upsertFile("startup/03_runStartupProgram.lua","startup/03_runStartupProgram.lua")
     ---@diagnostic disable-next-line: undefined-field
     os.reboot()
 end
 
-local function printProgramStartupWithVersion(program_name, program_version)
+local function printProgramStartupWithVersion(programName, programVersion)
     ---@diagnostic disable-next-line: undefined-field
     local currentComputerName = os.getComputerLabel()
-    log("Starting " .. program_name .. " v" .. program_version["major"] .. "." .. program_version["minor"] .. "." .. program_version["patch"] .. " on " .. currentComputerName)
+    log("Starting " .. programName .. " v" .. programVersion .. " on " .. currentComputerName)
 end
 
-if should_bootstrap then
+if shouldBootstrap then
     bootstrap()
 end
 
+local version = 1
 return {
     version = version,
     split = split,

@@ -3,7 +3,6 @@
 
 -- Expected start with Turtle facing forward along the tunnel path
 -- with a chest/inventory to the right of it for unloading items
-local version = { major=1, minor=0, patch=0 }
 local common = require("common")
 local turtleCommon = require("turtleCommon")
 
@@ -14,6 +13,8 @@ local turtle = turtle
 local sleep = sleep
 ---@diagnostic disable-next-line: undefined-global
 local gps = gps
+---@diagnostic disable-next-line: undefined-global
+local peripheral = peripheral
 
 local args = {...}
 if #args < 1 then
@@ -52,22 +53,32 @@ local function navigateToStorage()
     common.log("Navigating to storage")
     common.log("Storage coordinates: " .. storageX .. "|" .. storageY .. "|" .. storageZ, "debug")
     turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
+    local numberOfRightTurnsToUndo = 0
+    while peripheral.getType("forward") ~= "minecraft:chest" and numberOfRightTurnsToUndo < 4 do
+        turtle.turnRight()
+        numberOfRightTurnsToUndo = numberOfRightTurnsToUndo + 1
+    end
+    if peripheral.getType("forward") ~= "minecraft:chest" then
+        common.throwError("No chest found next to turtle for storage at storage location " .. storageX .. "|" .. storageY .. "|" .. storageZ)
+    end
     common.log("Arrived at storage")
+    return numberOfRightTurnsToUndo
 end
 
 local function dumpInventory(default_slot, off_limits_slots, return_to_previous)
     common.log("Dumping Inventory")
     default_slot = default_slot or 1
-    local currentX, currentY, currentZ = gps.locate()
     turtleCommon.goLeft()
-    navigateToStorage()
-    turtle.turnRight()
+    local currentX, currentY, currentZ = gps.locate()
+    local numberOfRightTurnsToUndo = navigateToStorage()
     turtleCommon.storeGoods(default_slot, off_limits_slots)
-    turtle.turnLeft()
+    for _=1,numberOfRightTurnsToUndo do
+        turtle.turnLeft()
+    end
     if return_to_previous then
         common.log("Returning to start")
-        turtleCommon.goLeft()
         turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
+        turtleCommon.goRight()
     end
 end
 
@@ -224,6 +235,7 @@ end
 
 main()
 
+local version = 1
 return {
     version = version,
     main = main,

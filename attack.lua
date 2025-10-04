@@ -17,9 +17,14 @@ while true do
     turtle.turnLeft()
     turtle.turnLeft()
     for i=1,16 do
-        turtle.select(i) 
+        turtle.select(i)
         turtle.drop()
     end
     turtle.turnLeft()
     turtle.turnLeft()
 end
+
+local version = 1
+return {
+    version = version
+}

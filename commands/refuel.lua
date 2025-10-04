@@ -7,7 +7,7 @@ turtle.select(tonumber(fuel_slot))
 turtle.refuel()
 print("Fuel: " .. turtle.getFuelLevel())
 
-local version = { major=1, minor=0, patch=0 }
+local version = 1
 return {
     version = version
 }

@@ -15,3 +15,8 @@ curConfig["treeStartZ"] = toSetZ
 
 common.writeConfigFile(curConfig)
 common.log("Tree start set to " .. toSetX .. " " .. toSetY .. " " .. toSetZ)
+
+local version = 1
+return {
+    version = version
+}
