@@ -1,4 +1,4 @@
-local common = require("common")
+local common = require("/common")
 
 ---@diagnostic disable-next-line: undefined-global
 local peripheral = peripheral
@@ -30,7 +30,7 @@ repeat
     end
 until message == "stop"
 
-local version = 1
+local version = 2
 return {
     version = version
 }

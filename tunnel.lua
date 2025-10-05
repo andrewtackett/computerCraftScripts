@@ -46,8 +46,8 @@ local tunnelHeight = args[3] or tonumber(config["tunnelHeight"])
 local tunnelWidth = 3 -- hardcoded by algorithm
 
 
-local torch_slot = 16
-local off_limits_slots = { [16] = true }
+local torch_slot = 1
+local off_limits_slots = { [1] = true }
 
 local function navigateToStorage()
     common.log("Navigating to storage")
@@ -220,7 +220,7 @@ local function digStep()
     clearLeftAndRightFallingItems()
 end
 
-local version = 6
+local version = 7
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)

@@ -263,6 +263,7 @@ local function upsertAll(getCommands, getStartupFiles)
     end
 end
 
+-- wget https://raw.githubusercontent.com/andrewtackett/computerCraftScripts/main/common.lua common.lua
 local function bootstrap()
     upsertFile("config.cfg")
     upsertAll(true, true)
@@ -281,7 +282,7 @@ if shouldBootstrap then
     bootstrap()
 end
 
-local version = 2
+local version = 3
 return {
     version = version,
     split = split,
