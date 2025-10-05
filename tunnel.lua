@@ -123,18 +123,18 @@ end
 
 local function shouldPlaceTorch()
     local currentX, _, currentZ = gps.locate()
-    local xOffset = currentX % distance_between_torches
-    local zOffset = currentZ % distance_between_torches
+    local storageXOffset = (currentX - storageX) % distance_between_torches
+    local storageZOffset = (currentZ - storageZ) % distance_between_torches
     -- Don't place torch at storage start
-    if not (xOffset > 1 or zOffset > 1) then
-        common.log("Not placing torch at storage start " .. currentX .. "|" .. currentZ .. ", " .. xOffset .. "|" .. zOffset, "debug")
-        return false
+    if not (storageXOffset > 1 or storageZOffset > 1) then
+        common.log("Not placing torch at storage start " .. currentX .. "|" .. currentZ .. ", " .. storageXOffset .. "|" .. storageZOffset, "debug")
+        -- return false
     end
-    local storageXOffset = (storageX % distance_between_torches)
-    local storageZOffset = (storageZ % distance_between_torches)
+    local xOffset = (currentX % distance_between_torches)
+    local zOffset = (currentZ % distance_between_torches)
     local alternatingRows = xOffset < tunnelWidth and zOffset < tunnelWidth
-    local placeTorchHere =  (xOffset == storageXOffset) and (zOffset == storageZOffset) and alternatingRows
-    common.log("Should place torch? " .. tostring(placeTorchHere) .. ", current: " .. currentX .. "|" .. currentZ .. ", offset: " .. xOffset .. "|" .. zOffset .. ", storage offset: " .. storageXOffset .. "|" .. storageZOffset, "debug")
+    local placeTorchHere =  (storageXOffset == 0) and (storageZOffset == 0) and alternatingRows
+    common.log("Should place torch? " .. tostring(placeTorchHere) .. ", current: " .. currentX .. "|" .. currentZ .. ", offset: " .. xOffset .. "|" .. zOffset .. ", storage offset: " .. storageXOffset .. "|" .. storageZOffset .. ", alternating rows: " .. tostring(alternatingRows), "debug")
     return placeTorchHere
 end
 
@@ -219,7 +219,7 @@ local function digStep()
     clearLeftAndRightFallingItems()
 end
 
-local version = 4
+local version = 5
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)
