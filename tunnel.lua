@@ -132,7 +132,7 @@ local function shouldPlaceTorch()
     end
     local storageXOffset = (storageX % distance_between_torches)
     local storageZOffset = (storageZ % distance_between_torches)
-    local alternatingRows = storageXOffset < tunnelWidth and storageZOffset < tunnelWidth
+    local alternatingRows = xOffset < tunnelWidth and zOffset < tunnelWidth
     local placeTorchHere =  (xOffset == storageXOffset) and (zOffset == storageZOffset) and alternatingRows
     common.log("Should place torch? " .. tostring(placeTorchHere) .. ", current: " .. currentX .. "|" .. currentZ .. ", offset: " .. xOffset .. "|" .. zOffset .. ", storage offset: " .. storageXOffset .. "|" .. storageZOffset, "debug")
     return placeTorchHere
@@ -235,7 +235,7 @@ end
 
 main()
 
-local version = 1
+local version = 2
 return {
     version = version,
     main = main,

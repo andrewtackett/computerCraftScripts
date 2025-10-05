@@ -135,9 +135,13 @@ local function log(msg, level, loggingMode)
 end
 
 -- TODO
-local function logWithOutputRecord(loggingMode, outputLog, msg, level)
+local function logWithOutputRecord(msg, level, loggingMode, outputLog)
+    outputLog = outputLog or "output.log"
     log(msg, level, loggingMode)
     -- TODO: write stuff to append to outputLog
+    local logFile = fs.open(outputLog, "a")
+    logFile.writeLine(os.date("%Y-%m-%d %H:%M:%S") .. " [" .. level .. "] " .. msg)
+    logFile.close()
 end
 
 local function throwError(msg)
@@ -277,7 +281,7 @@ if shouldBootstrap then
     bootstrap()
 end
 
-local version = 1
+local version = 2
 return {
     version = version,
     split = split,
