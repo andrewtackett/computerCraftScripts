@@ -195,6 +195,7 @@ local function printLoopStatus()
     common.log("Loop " .. formattedTime .. ", Fuel: " .. turtle.getFuelLevel() .. ", Saplings: " .. turtle.getItemCount(sapling_slot))
 end
 
+local version = 2
 local function main()
     common.printProgramStartupWithVersion("Tree Farm", version)
     turtle.select(sapling_slot)
@@ -224,7 +225,6 @@ end
 
 main()
 
-local version = 1
 return {
     version = version,
     main = main,

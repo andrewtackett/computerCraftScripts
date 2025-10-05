@@ -219,6 +219,7 @@ local function digStep()
     clearLeftAndRightFallingItems()
 end
 
+local version = 3
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)
@@ -235,7 +236,6 @@ end
 
 main()
 
-local version = 2
 return {
     version = version,
     main = main,
