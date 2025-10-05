@@ -40,6 +40,7 @@
     - print date before all other messages? how to tell/initialize?
     - print(os.date("%m-%d^%H:%M:%S") .. "|" .. log_level:upper() .. "|" .. msg)
     - print(os.date("%H:%M:%S") .. "|" .. log_level:upper() .. "|" .. msg)
+ - Fix writing config in alphabetical order
 
 
 # Projects

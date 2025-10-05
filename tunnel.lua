@@ -18,10 +18,10 @@ local peripheral = peripheral
 
 local args = {...}
 if #args < 1 then
-    print("Usage: tunnel <tunnelLength> [tunnelHeight] [setStorageLocation]")
+    print("Usage: tunnel <tunnelLength> [setStorageLocation] [tunnelHeight]")
     return
 end
-local setStorageLocation = not (args[3] == "false")
+local setStorageLocation = not (args[2] == "false")
 
 if setStorageLocation then
     common.log("Resetting storage location")
@@ -42,7 +42,7 @@ local storageZ = tonumber(config["storageZ"])
 
 local distance_between_torches = 6
 local tunnelLength = args[1] or 100
-local tunnelHeight = args[2] or tonumber(config["tunnelHeight"])
+local tunnelHeight = args[3] or tonumber(config["tunnelHeight"])
 local tunnelWidth = 3 -- hardcoded by algorithm
 
 
@@ -77,6 +77,7 @@ local function dumpInventory(default_slot, off_limits_slots, return_to_previous)
     end
     if return_to_previous then
         common.log("Returning to start")
+        turtleCommon.goLeft()
         turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
         turtleCommon.goRight()
     end
@@ -132,7 +133,7 @@ local function shouldPlaceTorch()
     end
     local xOffset = (currentX % distance_between_torches)
     local zOffset = (currentZ % distance_between_torches)
-    local alternatingRows = xOffset < tunnelWidth and zOffset < tunnelWidth
+    local alternatingRows = xOffset < tunnelWidth or zOffset < tunnelWidth
     local placeTorchHere =  (storageXOffset == 0) and (storageZOffset == 0) and alternatingRows
     common.log("Should place torch? " .. tostring(placeTorchHere) .. ", current: " .. currentX .. "|" .. currentZ .. ", offset: " .. xOffset .. "|" .. zOffset .. ", storage offset: " .. storageXOffset .. "|" .. storageZOffset .. ", alternating rows: " .. tostring(alternatingRows), "debug")
     return placeTorchHere
@@ -219,7 +220,7 @@ local function digStep()
     clearLeftAndRightFallingItems()
 end
 
-local version = 5
+local version = 6
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)
