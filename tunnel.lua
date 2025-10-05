@@ -54,11 +54,11 @@ local function navigateToStorage()
     common.log("Storage coordinates: " .. storageX .. "|" .. storageY .. "|" .. storageZ, "debug")
     turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
     local numberOfRightTurnsToUndo = 0
-    while peripheral.getType("forward") ~= "minecraft:chest" and numberOfRightTurnsToUndo < 4 do
+    while peripheral.getType("front") ~= "minecraft:chest" and numberOfRightTurnsToUndo < 4 do
         turtle.turnRight()
         numberOfRightTurnsToUndo = numberOfRightTurnsToUndo + 1
     end
-    if peripheral.getType("forward") ~= "minecraft:chest" then
+    if peripheral.getType("front") ~= "minecraft:chest" then
         common.throwError("No chest found next to turtle for storage at storage location " .. storageX .. "|" .. storageY .. "|" .. storageZ)
     end
     common.log("Arrived at storage")
@@ -219,7 +219,7 @@ local function digStep()
     clearLeftAndRightFallingItems()
 end
 
-local version = 3
+local version = 4
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)
