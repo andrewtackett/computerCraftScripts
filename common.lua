@@ -93,8 +93,13 @@ end
 local function writeConfigFile(config, file_name)
     file_name = file_name or "config.cfg"
     local file = fs.open(file_name, "w+")
-    table.sort(config)
-    for setting, value in pairs(config) do
+    local configKeys = {}
+    for k in pairs(config) do
+        table.insert(configKeys, k)
+    end
+    table.sort(configKeys)
+    for _, setting in ipairs(configKeys) do
+        local value = config[setting]
         local line = setting .. ":" .. value
         file.writeLine(line)
     end
@@ -282,7 +287,7 @@ if shouldBootstrap then
     bootstrap()
 end
 
-local version = 3
+local version = 4
 return {
     version = version,
     split = split,

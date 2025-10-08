@@ -135,7 +135,8 @@ local function findLastOpenInventorySlot(inventory_size, items)
 end
 
 local function storeGoods(default_slot, off_limits_slots)
-    common.log("Storing goods", "info")
+    local x, y, z = gps.locate()
+    common.log("Storing goods at: " .. x .. "|" .. y .. "|" .. z, "info")
     local function canDropItems()
         return turtle.drop()
     end
@@ -339,7 +340,7 @@ local function navigateToPoint(target_x, target_y, target_z, y_first)
     end
 end
 
-local version = 1
+local version = 2
 return {
     version = version,
     goLeft = goLeft,
