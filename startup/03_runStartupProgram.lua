@@ -4,6 +4,9 @@ local programDirectory = {
     [6] = "attack",
     [7] = "attack",
     [8] = "attack",
+    [9] = "attack",
+    [17] = "attack",
+    [29] = "attack",
     [0] = "monitor left display",
     [1] = "treeFarm"
 }
@@ -13,7 +16,7 @@ if programToRun then
     shell.run(programToRun)
 end
 
-local version = 1
+local version = 2
 return {
     version = version
 }

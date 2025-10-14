@@ -17,7 +17,7 @@ local function goLeft(distance, continueProgramOnFail)
             if continueProgramOnFail then
                 return false
             else
-                common.throwError("Failed to go left. Stopping...")
+                common.log("Failed to go left. Stopping...","error")
             end
         end
     end
@@ -33,7 +33,7 @@ local function goRight(distance, continueProgramOnFail)
             if continueProgramOnFail then
                 return false
             else
-                common.throwError("Failed to go right. Stopping...")
+                common.log("Failed to go right. Stopping...","error")
             end
         end
     end
@@ -48,7 +48,7 @@ local function goUp(distance, continueProgramOnFail)
             if continueProgramOnFail then
                 return false
             else
-                common.throwError("Failed to go up. Stopping...")
+                common.log("Failed to go up. Stopping...","error")
             end
         end
     end
@@ -62,7 +62,7 @@ local function goDown(distance, continueProgramOnFail)
             if continueProgramOnFail then
                 return false
             else
-                common.throwError("Failed to go down. Stopping...")
+                common.log("Failed to go down. Stopping...","error")
             end
         end
     end
@@ -76,7 +76,7 @@ local function goBack(distance, continueProgramOnFail)
             if continueProgramOnFail then
                 return false
             else
-                common.throwError("Failed to go back. Stopping...")
+                common.log("Failed to go back. Stopping...","error")
             end
         end
     end
@@ -90,7 +90,7 @@ local function goForward(distance, continueProgramOnFail)
             if continueProgramOnFail then
                 return false
             else
-                common.throwError("Failed to go forward. Stopping...")
+                common.log("Failed to go forward. Stopping...","error")
             end
         end
     end
@@ -99,13 +99,13 @@ end
 
 local function safeDig()
     if not turtle.dig() then
-        common.throwError("Failed to dig. Stopping...")
+        common.log("Failed to dig. Stopping...","error")
     end
 end
 
 local function safeDigUp()
     if not turtle.digUp() then
-        common.throwError("Failed to dig up. Stopping...")
+        common.log("Failed to dig up. Stopping...","error")
     end
 end
 
@@ -131,7 +131,7 @@ local function findLastOpenInventorySlot(inventory_size, items)
             return i
         end
     end
-    common.throwError("No space to rearrange fuel/items in chest!")
+    common.log("No space to rearrange fuel/items in chest!","error")
 end
 
 local function storeGoods(default_slot, off_limits_slots)
@@ -145,7 +145,7 @@ local function storeGoods(default_slot, off_limits_slots)
         if not off_limits_slots[i] then
             if(turtle.getItemCount() > 0) then
                 if not turtle.drop() then
-                    common.log("The storage is full. Stopping...", "error")
+                    common.log("The storage is full. Stopping...", "warning")
                     common.waitForFix(canDropItems, 30)
                 end
             end
@@ -206,14 +206,14 @@ local function ensureFuel(min_fuel_level, fuel_item_name, fuel_slot, default_slo
             common.log("Not enough fuel in fuel slot!","warning")
             restockItem(fuel_item_name, needed_items)
             if turtle.getItemCount(fuel_slot) < needed_items then
-                common.throwError("Not enough fuel in storage!")
+                common.log("Not enough fuel in storage!","error")
             end
         end
         turtle.select(fuel_slot)
         turtle.refuel(needed_items)
         turtle.select(default_slot)
         if turtle.getFuelLevel() < min_fuel_level then
-            common.throwError("Refuel failed!")
+            common.log("Refuel failed!","error")
         end
     end
 end
@@ -258,7 +258,7 @@ local function determineWhichDirectionCurrentlyFacing()
         end
         goBack(1)
     else
-        common.throwError("Can't move forward or backward to determine direction")
+        common.log("Can't move forward or backward to determine direction","error")
     end
     
     return direction
@@ -340,7 +340,7 @@ local function navigateToPoint(target_x, target_y, target_z, y_first)
     end
 end
 
-local version = 2
+local version = 3
 return {
     version = version,
     goLeft = goLeft,

@@ -59,7 +59,7 @@ local function navigateToStorage()
         numberOfRightTurnsToUndo = numberOfRightTurnsToUndo + 1
     end
     if peripheral.getType("front") ~= "minecraft:chest" then
-        common.throwError("No chest found next to turtle for storage at storage location " .. storageX .. "|" .. storageY .. "|" .. storageZ)
+        common.log("No chest found next to turtle for storage at storage location " .. storageX .. "|" .. storageY .. "|" .. storageZ,"error")
     end
     common.log("Arrived at storage")
     return numberOfRightTurnsToUndo
@@ -90,7 +90,7 @@ local function ensureFuel()
     local neededFuel = math.ceil(tunnelLength * tunnelHeight * 2.6)
     local hasEnoughFuel = curFuel > neededFuel
     if not hasEnoughFuel then
-        common.throwError("Not enough fuel")
+        common.log("Not enough fuel","error")
     end
 end
 
@@ -101,7 +101,7 @@ local function ensureTorches()
         return turtle.getItemCount(torch_slot) > 0
     end
     if not checkTorches() then
-        common.log("Out of torches!", "error")
+        common.log("Out of torches!", "warning")
         common.waitForFix(checkTorches, 30)
     end
 end
@@ -220,7 +220,7 @@ local function digStep()
     clearLeftAndRightFallingItems()
 end
 
-local version = 7
+local version = 8
 -- Main
 local function main()
     common.printProgramStartupWithVersion("Tunnel", version)
@@ -232,7 +232,7 @@ local function main()
         digStep()
     end
     dumpInventory(torch_slot, off_limits_slots, false)
-    common.log("Done digging tunnel")
+    common.log("Done digging tunnel", "success")
 end
 
 main()

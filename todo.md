@@ -41,6 +41,7 @@
     - print(os.date("%m-%d^%H:%M:%S") .. "|" .. log_level:upper() .. "|" .. msg)
     - print(os.date("%H:%M:%S") .. "|" .. log_level:upper() .. "|" .. msg)
  - Fix writing config in alphabetical order
+ - Update startup programs to take label into account?
 
 
 # Projects

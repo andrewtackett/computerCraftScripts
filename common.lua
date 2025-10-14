@@ -136,6 +136,18 @@ local function log(msg, level, loggingMode)
     if level == "broadcast" then
         peripheral.find("modem", rednet.open)
         rednet.broadcast(msg)
+    elseif level == "success" then
+        peripheral.find("modem", rednet.open)
+        rednet.send(0, "success|" .. msg)
+    elseif level == "warning" then
+        -- Send warning message back to main display, Main is ID:0
+        peripheral.find("modem", rednet.open)
+        rednet.send(0, "warning|" .. msg)
+    elseif level == "error" then
+        -- Send error message back to main display, Main is ID:0
+        peripheral.find("modem", rednet.open)
+        rednet.send(0, "error|" .. msg)
+        error()
     end
 end
 
@@ -147,13 +159,6 @@ local function logWithOutputRecord(msg, level, loggingMode, outputLog)
     local logFile = fs.open(outputLog, "a")
     logFile.writeLine(os.date("%Y-%m-%d %H:%M:%S") .. " [" .. level .. "] " .. msg)
     logFile.close()
-end
-
-local function throwError(msg)
-    term.setTextColor(error_color)
-    print(msg)
-    term.setTextColor(default_color)
-    error()
 end
 
 local function printWithColor(msg, color)
@@ -198,7 +203,7 @@ local function downloadFileFromGithub(repo, file_path, destination)
         response.close()
         log("Downloaded " .. file_path .. " to " .. destination)
     else
-        throwError("Failed to download " .. file_path)
+        log("Failed to download " .. file_path,"error")
     end
 end
 
@@ -287,15 +292,22 @@ if shouldBootstrap then
     bootstrap()
 end
 
-local version = 4
+local version = 5
 return {
     version = version,
+    info_color = info_color,
+    warning_color = warning_color,
+    error_color = error_color,
+    success_color = success_color,
+    verbose_color = verbose_color,
+    debug_color = debug_color,
+    broadcast_color = broadcast_color,
+    default_color = default_color,
     split = split,
     readConfigFile = readConfigFile,
     writeConfigFile = writeConfigFile,
     log = log,
     logWithOutputRecord = logWithOutputRecord,
-    throwError = throwError,
     printWithColor = printWithColor,
     waitForFix = waitForFix,
     downloadPastebinFile = downloadPastebinFile,

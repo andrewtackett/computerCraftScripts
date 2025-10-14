@@ -18,7 +18,7 @@ local gps = gps
 local colors = colors
 
 local function resetText()
-    term.setTextColor(colors.white)
+    term.setTextColor(common.default_color)
     term.setBackgroundColor(colors.black)
     term.clear()
     term.setCursorPos(1,1)
@@ -29,20 +29,28 @@ local function main()
     local id, data
     repeat
         id, data = rednet.receive()
-        local command, message = table.unpack(common.split(data, "|"))
+        local meta, message = table.unpack(common.split(data, "|"))
         common.log(id .. ":" .. data, "debug")
         common.log("ID #" .. id .. " sent: " .. message)
-        if command == "clearMonitor" then
+        if meta == "clearMonitor" then
             common.log("Message Log:")
             resetText()
             rednet.send(id, "clearedMonitor")
+        elseif meta == "success" then
+            common.log(message, "success")
+        elseif meta == "warning" then
+            common.log(message, "warning")
+        elseif meta == "error" then
+            term.setTextColor(common.error_color)
+            print(message)
+            term.setTextColor(common.default_color)
         end
-    until command == "stop"
+    until meta == "stop"
 end
 
 main()
 
-local version = 1
+local version = 2
 return {
     version = version
 }

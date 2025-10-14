@@ -83,14 +83,14 @@ local function ensureFuel()
             turtleCommon.navigateToPoint(storageX, storageY, storageZ, true)
             turtleCommon.restockItem(fuel_item_name, needed_items, fuel_slot, sapling_slot, "front")
             if turtle.getItemCount(fuel_slot) < needed_items then
-                common.throwError("Not enough fuel in storage!")
+                common.log("Not enough fuel in storage!","error")
             end
         end
         local fuel_slot_selected = turtle.select(fuel_slot)
         local is_fuel, reason = turtle.refuel(needed_items)
         common.log("fuel_slot_selected " .. tostring(fuel_slot_selected) .. ", is_fuel " .. tostring(is_fuel) .. ", reason: " .. tostring(reason), "debug")
         if turtle.getFuelLevel() < min_fuel_level then
-            common.throwError("Refuel failed! " .. turtle.getFuelLevel() .. " / " .. min_fuel_level .. " fuel needed.")
+            common.log("Refuel failed! " .. turtle.getFuelLevel() .. " / " .. min_fuel_level .. " fuel needed.","error")
         end
         turtle.select(sapling_slot)
         turtleCommon.navigateToPoint(currentX, currentY, currentZ, true)
@@ -105,7 +105,7 @@ local function ensureSaplings()
         common.log("Restocking Saplings")
         turtleCommon.restockItem(sapling_item_name, row_length, sapling_slot, sapling_slot, "front")
         if storageHasEnoughSaplings() then
-            common.log("Not enough saplings in storage! Need at least " .. (row_length + 1) .. " saplings.","error")
+            common.log("Not enough saplings in storage! Need at least " .. (row_length + 1) .. " saplings.","warning")
             common.waitForFix(storageHasEnoughSaplings, 30)
         end
     end
@@ -195,7 +195,7 @@ local function printLoopStatus()
     common.log("Loop " .. formattedTime .. ", Fuel: " .. turtle.getFuelLevel() .. ", Saplings: " .. turtle.getItemCount(sapling_slot))
 end
 
-local version = 2
+local version = 3
 local function main()
     common.printProgramStartupWithVersion("Tree Farm", version)
     turtle.select(sapling_slot)
