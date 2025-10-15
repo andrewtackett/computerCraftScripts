@@ -24,6 +24,12 @@ local function resetText()
     term.setCursorPos(1,1)
 end
 
+local function logWithColor(msg, color)
+    term.setTextColor(color)
+    print(msg)
+    term.setTextColor(common.default_color)
+end
+
 local function main()
     peripheral.find("modem", rednet.open)
     local id, data
@@ -31,26 +37,26 @@ local function main()
         id, data = rednet.receive()
         local meta, message = table.unpack(common.split(data, "|"))
         common.log(id .. ":" .. data, "debug")
-        common.log("ID #" .. id .. " sent: " .. message)
+        local formattedMessage = "#" .. id .. " - " .. message
         if meta == "clearMonitor" then
-            common.log("Message Log:")
             resetText()
+            common.log("Message Log:")
             rednet.send(id, "clearedMonitor")
         elseif meta == "success" then
-            common.log(message, "success")
+            logWithColor(formattedMessage, common.success_color)
         elseif meta == "warning" then
-            common.log(message, "warning")
+            logWithColor(formattedMessage, common.warning_color)
         elseif meta == "error" then
-            term.setTextColor(common.error_color)
-            print(message)
-            term.setTextColor(common.default_color)
+            logWithColor(formattedMessage, common.error_color)
+        else
+            common.log(formattedMessage)
         end
     until meta == "stop"
 end
 
 main()
 
-local version = 2
+local version = 3
 return {
     version = version
 }
