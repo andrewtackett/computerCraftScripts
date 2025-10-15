@@ -37,7 +37,12 @@ local function main()
         id, data = rednet.receive()
         local meta, message = table.unpack(common.split(data, "|"))
         common.log(id .. ":" .. data, "debug")
-        local formattedMessage = "#" .. id .. " - " .. message
+        local formattedMessage
+        if message == nil then
+            formattedMessage = "#" .. id .. " - " .. meta
+        else
+            formattedMessage = "#" .. id .. " - " .. message
+        end
         if meta == "clearMonitor" then
             resetText()
             common.log("Message Log:")
@@ -56,7 +61,7 @@ end
 
 main()
 
-local version = 3
+local version = 4
 return {
     version = version
 }
