@@ -25,6 +25,7 @@
         - maybe just peripheral.find("inventory") -- or "minecraft:chest"
 - Make a shutdown and save last command to resume program
     - Storage command to file first then diff coordinates for tunnel?
+    - when starting tunnel, save length/params to saveData.cfg then on startup calculate current offset and resume
 - Change treeFarm to try to refuel if out of fuel
 - Tunnel
     - Expand to keep doing down further rows

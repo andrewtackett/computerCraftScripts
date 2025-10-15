@@ -25,12 +25,12 @@ repeat
     if message == "location_check" then
         common.log("Responding to location_check")
         local currentX, currentY, currentZ = gps.locate()
-        sendReplyCCmain(id, "ack|" .. os.getComputerLabel() .. " is at " .. currentX .. " | " .. currentY .. " | " .. currentZ)
+        sendReplyCCmain(id, "ack|" .. os.getComputerLabel() .. " is at " .. currentX .. ", " .. currentY .. ", " .. currentZ)
         -- also return running program name/args?
     end
 until message == "stop"
 
-local version = 3
+local version = 4
 return {
     version = version
 }
